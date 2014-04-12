@@ -331,7 +331,8 @@ function WorkProductsController($scope, $http) {
                         //lines.splice(lines.length - 7, 7);
                         // join the array back into a single string
                         mapContextData = lines.join('>');
-                       // viewRawXML(mapContextData);
+              //viewRawXML(mapContextData);
+			  //console.log(mapContextData);
                         $scope.submitMapData();
 
                     }).
