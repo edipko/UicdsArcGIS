@@ -115,6 +115,7 @@ define(
                 esri.config.defaults.io.proxyUrl = this.config.proxyurl;
                 esri.config.defaults.io.alwaysUseProxy = false;    
               }
+              esri.config.defaults.io.useCors = false;
 
               //setup any helper services (geometry, print, routing, geocoding)
               if(this.config.helperServices && this.config.helperServices.geometry && this.config.helperServices.geometry.url){

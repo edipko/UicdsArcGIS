@@ -11,7 +11,7 @@ var map, tb;
 var markerSymbol, selectPointSymbol, selectPolylineSymbol, selectPolygonSymbol;
 var selectLayer, selectLayerID;
 var featuresJSONStr;
-var drawLayer;
+var drawLayer, bufferLayer;
 var clickHandler, clickListener;
 var editLayers = [],
     editorWidget;
@@ -24,6 +24,8 @@ var responseObj = null;
 var featureClickHandler = null;
 var kmzURL = null;
 var jsonURL = null;
+var layerTitle, layerURL, geomType, geomStr;
+var buffer;
 
 function initMap(options) {
 /*Patch to fix issue with floating panes used to display the measure and time panel. They
@@ -307,6 +309,8 @@ function createMap(webmapitem) {
 }
 
 function initToolbar() {
+    bufferLayer = new esri.layers.GraphicsLayer();
+    map.addLayer(bufferLayer);
     drawLayer = new esri.layers.GraphicsLayer();
     map.addLayer(drawLayer);
 
@@ -324,75 +328,148 @@ function initToolbar() {
     selectPolygonSymbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, red, 2), new dojo.Color([255, 255, 0, 0.25]));
 }
 
+function setTolerance(centerPoint) {
+    var mapWidth = map.extent.getWidth();
+
+    //Divide width in map units by width in pixels
+    var pixelWidth = mapWidth/map.width;
+
+    //Calculate a 10 pixel envelope width (5 pixel tolerance on each side)
+    var tolerance = 10 * pixelWidth;
+
+    //Build tolerance envelope and set it as the query geometry
+    var queryExtent = new esri.geometry.Extent(1,1,tolerance,tolerance,centerPoint.spatialReference);
+    return queryExtent.centerAt(centerPoint);
+}
+
+function queryFeatureLayer(geom) {
+    var query = new esri.tasks.Query();
+    query.geometry = geom;
+    var deferred = map.getLayer(selectLayer.id).selectFeatures(query, esri.layers.FeatureLayer.SELECTION_NEW);
+    deferred.addCallback(function (features) {
+        if (features.length > 0) {
+            dojo.forEach(features, function(feature, index) {
+                var graphic = feature;
+                if (feature.geometry.type === 'point') 
+                    graphic.symbol = selectPointSymbol;
+                else if(feature.geometry.type === 'polyline')
+                    graphic.symbol = selectPolylineSymbol;
+                else if(feature.geometry.type === 'polygon')
+                    graphic.symbol = selectPolygonSymbol;
+
+                drawLayer.add(graphic);
+            });
+            map.getLayer(selectLayer.id).clearSelection();
+            map.getLayer(selectLayer.id).refresh();
+            drawLayer.refresh();
+            showResult();
+        }
+    });
+}
+
+function queryMapLayer(geom) {
+    var identifyTask = new esri.tasks.IdentifyTask(selectLayer.url);
+
+    identifyParams = new esri.tasks.IdentifyParameters();
+    identifyParams.tolerance = 3;
+    identifyParams.returnGeometry = true;
+    identifyParams.layerOption = esri.tasks.IdentifyParameters.LAYER_OPTION_TOP;
+    identifyParams.width = map.width;
+    identifyParams.height = map.height;
+
+    identifyParams.geometry = geom;
+    identifyParams.mapExtent = map.extent;
+    identifyTask.execute(identifyParams, function (idResults) {
+        selectLayerID = idResults[0].layerId;
+        if (idResults.length > 0) {
+            featuresJSONStr = dojo.toJson(idResults);
+            selectLayerID = idResults[0].layerId;
+            for (var i = 0, il = idResults.length; i < il; i++) {
+                var idResult = idResults[i];
+                var graphic = idResult.feature;
+                if (idResult.feature.geometry.type === 'point') 
+                    graphic.symbol = selectPointSymbol;
+                else if(idResult.feature.geometry.type === 'polyline')
+                    graphic.symbol = selectPolylineSymbol;
+                else if(idResult.feature.geometry.type === 'polygon')
+                    graphic.symbol = selectPolygonSymbol;
+
+                drawLayer.add(graphic);
+            }
+            drawLayer.refresh();
+            showResult();
+        }
+    });
+}
+
 function selectFeatures(geom)
 {
     tb.deactivate(); 
     map.enableMapNavigation();
     enablePopups();
     drawLayer.clear();
+    bufferLayer.clear();
 
     selectLayer = getVisibleLayers()[0];
     selectLayerID = "";
     kmzURL = "";
-    //A layer can be feature service layer or map sevrice layer
-    //use selectFeatures on feature service layer to select
-    //use identify on map service layer to select on multiple sublayers
-    if (selectLayer.url.indexOf("FeatureServer") != -1) {
-        query = new esri.tasks.Query();
-        query.geometry = geom;
-        map.getLayer(selectLayer.id).selectFeatures(query, esri.layers.FeatureLayer.SELECTION_NEW);
-        objIdField = getObjIDField(map.getLayer(selectLayer.id).getSelectedFeatures()[0]);
-        var features = [];
-        dojo.forEach(map.getLayer(selectLayer.id).getSelectedFeatures(), function(feature, index) {
-            features.push(feature);
-            var graphic = feature;
-            if (feature.geometry.type === 'point') 
-                graphic.symbol = selectPointSymbol;
-            else if(feature.geometry.type === 'polyline')
-                graphic.symbol = selectPolylineSymbol;
-            else if(feature.geometry.type === 'polygon')
-                graphic.symbol = selectPolygonSymbol;
 
-            drawLayer.add(graphic);
-        });
-        map.getLayer(selectLayer.id).clearSelection();
-        map.getLayer(selectLayer.id).refresh();
-        drawLayer.refresh();
-        showResult();
-    }
-    else if (selectLayer.url.indexOf("MapServer") != -1) {
-        identifyTask = new esri.tasks.IdentifyTask(selectLayer.url);
+    if (buffer) {
+        var showBuffer = function(bufferedGeometries){
+            var bSymbol = new esri.symbol.SimpleFillSymbol(
+                esri.symbol.SimpleFillSymbol.STYLE_SOLID,
+                new esri.symbol.SimpleLineSymbol(
+                  esri.symbol.SimpleLineSymbol.STYLE_SOLID,
+                  new dojo.Color([255,0,0,0.65]), 2
+                ),
+                new dojo.Color([255,0,0,0.2])
+            );
 
-        identifyParams = new esri.tasks.IdentifyParameters();
-        identifyParams.tolerance = 3;
-        identifyParams.returnGeometry = true;
-        identifyParams.layerOption = esri.tasks.IdentifyParameters.LAYER_OPTION_TOP;
-        identifyParams.width = map.width;
-        identifyParams.height = map.height;
+            var bGeom = bufferedGeometries[0];
+            var graphic = new esri.Graphic(bGeom, bSymbol);
+            bufferLayer.add(graphic);
+            map.setExtent(bGeom.getExtent().expand(1.5));
 
-        identifyParams.geometry = geom;
-        identifyParams.mapExtent = map.extent;
-        identifyTask.execute(identifyParams, function (idResults) {
-            selectLayerID = idResults[0].layerId;
-            if (idResults.length > 0) {
-                featuresJSONStr = dojo.toJson(idResults);
-                selectLayerID = idResults[0].layerId;
-                for (var i = 0, il = idResults.length; i < il; i++) {
-                    var idResult = idResults[i];
-                    var graphic = idResult.feature;
-                    if (idResult.feature.geometry.type === 'point') 
-                        graphic.symbol = selectPointSymbol;
-                    else if(idResult.feature.geometry.type === 'polyline')
-                        graphic.symbol = selectPolylineSymbol;
-                    else if(idResult.feature.geometry.type === 'polygon')
-                        graphic.symbol = selectPolygonSymbol;
-
-                    drawLayer.add(graphic);
-                }
-                showResult();
+            if (selectLayer.url.indexOf("FeatureServer") != -1) {
+                queryFeatureLayer(bGeom);
             }
-        });
-    }   
+            else if (selectLayer.url.indexOf("MapServer") != -1) {
+                queryMapLayer(bGeom);
+            } 
+        };
+
+        var gsvc = new esri.tasks.GeometryService(configOptions.helperServices.geometry.url);
+        var params = new esri.tasks.BufferParameters();
+        params.distances = [ dijit.byId("distance").value ];
+        params.bufferSpatialReference = map.spatialReference;
+        params.outSpatialReference = map.spatialReference;
+        params.unit = esri.tasks.GeometryService.UNIT_SURVEY_MILE;
+        if (geom.type === "polygon") {
+            //if geometry is a polygon then simplify polygon.  This will make the user drawn polygon topologically correct.
+            gsvc.simplify([geom], function(geometries) {
+              params.geometries = geometries;
+               gsvc.buffer(params, showBuffer);
+            });
+        } 
+        else {
+            params.geometries = [geom];
+            gsvc.buffer(params, showBuffer);
+        }
+    }
+    else {
+        //A layer can be feature service layer or map sevrice layer
+        //use selectFeatures on feature service layer to select
+        //use identify on map service layer to select on multiple sublayers
+        if (selectLayer.url.indexOf("FeatureServer") != -1) {
+            if (geom.type === 'point')
+                queryFeatureLayer(setTolerance(geom));
+            else
+                queryFeatureLayer(geom);
+        }
+        else if (selectLayer.url.indexOf("MapServer") != -1) {
+            queryMapLayer(geom);
+        } 
+    }
 }
 
 function showResult() {
@@ -404,7 +481,29 @@ function showResult() {
     featureSet.features = drawLayer.graphics;
     featuresJSONStr = dojo.toJson(featureSet.toJson());
 
-    if (selectLayerID != "") {
+    geomType = "";
+    geomStr = "";;
+    layerTitle = selectLayer.title;
+    layerURL = selectLayer.url;
+    console.log('layerTitle: '+layerTitle);
+    console.log('layerURL: '+layerURL);
+
+    if (featureSet.features.length == 1) {
+        geomType = featureSet.features[0].geometry.type;
+        if (geomType == "point") {
+            geomStr = featureSet.features[0].geometry.x+","+featureSet.features[0].geometry.y;
+        }
+        else if (geomType == "polyline") {
+            geomStr = dojo.toJson(featureSet.features[0].geometry.paths);
+        }
+        else if (geomType == "polygon") {
+            geomStr = dojo.toJson(featureSet.features[0].geometry.rings);
+        }
+        console.log('geomType: '+geomType);
+        console.log('geomStr: '+geomStr);
+    }
+
+    if (selectLayerID !== "") {
         jsonURL = selectLayer.url+'/'+selectLayerID+'/query?objectIds='+objectids+'&outFields=*&returnGeometry=true&f=json';
         kmzURL = selectLayer.url+'/'+selectLayerID+'/query?objectIds='+objectids+'&outFields=*&returnGeometry=true&f=KMZ';
     }
@@ -413,6 +512,7 @@ function showResult() {
         jsonURL = selectLayer.url+'/query?objectIds='+objectids+'&outFields=*&returnGeometry=true&f=json';
     }
    
+
     console.log('jsonURL: '+jsonURL);
     console.log('kmzURL: '+kmzURL);
     console.log('featuresJSONStr: '+featuresJSONStr);   
@@ -2239,23 +2339,75 @@ function leidosDemo() {
 	/*
 	 * Handle Feature Select
 	 */
-	dojo.connect(dojo.byId("pointTool"), 'onclick', function(evt){
+
+    dojo.style("singleTool", "width", "60px");
+    dojo.connect(dijit.byId("singleTool"), 'onClick', function(){
         if (getVisibleLayers().length != 1)
             alert('Please make one layer visible.');
         else {
+            buffer = false;
             disablePopups();
             map.disableMapNavigation();
             tb.activate('point');
         }
     });
 
-    dojo.connect(dojo.byId("areaTool"), 'onclick', function(evt){
+    dojo.style("multiTool", "width", "60px");
+    dojo.connect(dijit.byId("multiTool"), 'onClick', function(){
         if (getVisibleLayers().length != 1)
             alert('Please make one layer visible.');
         else {
+            buffer = false;
             disablePopups();
             map.disableMapNavigation();
             tb.activate('extent');
+        }
+    });
+
+    dojo.style("bufferTool", "width", "60px");
+
+    dojo.connect(dijit.byId("pointBuffer"), 'onClick', function(){
+        if (getVisibleLayers().length != 1) {
+            alert('Please make one layer visible.');
+        }
+        else if (isNaN(parseFloat(dijit.byId("distance").value))) {
+            alert('Please specify a diantance.');
+        }
+        else {
+            buffer = true;
+            disablePopups();
+            map.disableMapNavigation();
+            tb.activate('point');
+        }
+    });
+
+    dojo.connect(dijit.byId("lineBuffer"), 'onClick', function(){
+        if (getVisibleLayers().length != 1) {
+            alert('Please make one layer visible.');
+        }
+        else if (isNaN(parseFloat(dijit.byId("distance").value))) {
+            alert('Please specify a diantance.');
+        }
+        else {
+            buffer = true;
+            disablePopups();
+            map.disableMapNavigation();
+            tb.activate('polyline');
+        }
+    });
+
+    dojo.connect(dijit.byId("polyBuffer"), 'onClick', function(){
+        if (getVisibleLayers().length != 1) {
+            alert('Please make one layer visible.');
+        }
+        else if (isNaN(parseFloat(dijit.byId("distance").value))) {
+            alert('Please specify a diantance.');
+        }
+        else {
+            buffer = true;
+            disablePopups();
+            map.disableMapNavigation();
+            tb.activate('polygon');
         }
     });
 

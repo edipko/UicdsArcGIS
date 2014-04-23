@@ -81,6 +81,8 @@
         dojo.require("dijit.form.Form");
         dojo.require("dijit.form.Button");
 		dojo.require("dojox.widget.Standby");
+        dojo.require("dijit.form.DropDownButton");
+        dojo.require("dijit.TooltipDialog");
 
         var i18n;
         dojo.ready(function () {
@@ -89,14 +91,14 @@
             var defaults = {
                 //The ID for the map from ArcGIS.com
                 //webmap: "f5b13dbed07c46cdb783cf361833aa6b",
-                webmap: "2cbfb356a33f4280bb20602fc0cecaf8",
+                webmap: "4a80dc00adc043eb8cdeef94f04604b5",
                 //webmap: "6efbc77bfba944909a05ee5200365048",
                 //Modify this to point to your sharing service URL if you are using the portal
                 sharingurl: "http://www.arcgis.com", //for example: "http://www.arcgis.com",
                 //The id for the web mapping application item that contains configuration info - in most
                 ////When editing you need to specify a proxyurl (see below) if the service is on a different domain
                 //Specify a proxy url if you will be editing, using the elevation profile or have secure services or web maps that are not shared with everyone.
-                proxyurl: "",
+                proxyurl: "proxy.ashx",
                 //cases this will be null.
                 appid: "",
                 //set to true to display the title
@@ -272,9 +274,21 @@
 
                     <!-- SOR START -->
                     <button data-dojo-type="dijit/form/Button" type="button" onClick="uicdsDialog.show();" class="shadow" style="position:absolute; right:20px; top:35px; z-index:38;" showLabel="false" iconClass="uicdsIcon">UICDS</button>
-
-                    <button id="pointTool" style="position:absolute; right:20px; top:65px; width: 60px; z-index:38;">Point</button>
-                    <button id="areaTool" style="position:absolute; right:20px; top:90px; width: 60px; z-index:38;">Area</button>
+                    <button id="singleTool" data-dojo-type="dijit/form/Button" style="position:absolute; right:20px; top:65px; z-index:38;" type="button"}>Single
+                    </button>
+                    <button id="multiTool" data-dojo-type="dijit/form/Button" style="position:absolute; right:20px; top:90px; z-index:38;" type="button"}>Multiple
+                    </button>
+                    <div id="bufferTool" data-dojo-type="dijit/form/DropDownButton" style="position:absolute; right:20px; top:115px; z-index:38;">
+                        <span>Buffer</span>
+                        <div data-dojo-type="dijit/TooltipDialog">
+                            <label for="distance">Distance (in Miles):</label> 
+                            <input data-dojo-type="dijit/form/TextBox" style="width: 50px;" id="distance" name="distance" value="0.5"></input>
+                            <br/>
+                            <button id="pointBuffer" data-dojo-type="dijit/form/Button" type="button">Point</button>
+                            <button id="lineBuffer" data-dojo-type="dijit/form/Button" type="button">Line</button>
+                            <button id="polyBuffer" data-dojo-type="dijit/form/Button" type="button">Polygon</button>
+                        </div>
+                    </div>
 
                     <div data-dojo-type="dijit/Dialog" data-dojo-id="uicdsDialog" id="uicdsDialog" title="ArcGIS UICDS Widget" style="width: 600px;">
                         <div data-dojo-type="dijit/layout/BorderContainer" design="sidebar" style="min-width: 1em; min-height: 1px; z-index: 0; width: 100%; height: 330px;">
