@@ -383,6 +383,7 @@ background-image:none !important;
 }
 
  /*CSS Styles for the measurement widget floating panel*/
+
 #floater {
    top:0px;
    left:50px;
@@ -394,6 +395,19 @@ background-image:none !important;
   -webkit-border-radius: 3px; 
   padding:0px !important;
 } 
+
+#uicds_floater {
+   top:0px;
+   left:50px;
+   overflow:hidden;
+   background-color:#fff;
+   border: solid 1px #999;
+   border-radius:3px;
+  -moz-border-radius:3px;
+  -webkit-border-radius: 3px; 
+  padding:0px !important;
+} 
+
 .dojoxFloatingPaneContent{
   font-family:"helvetica neue", helvetica, arial, sans-serif;
   font-size:8pt;
@@ -512,6 +526,13 @@ background-image:none !important;
   right:4px;
 }
 #closeBtn img{border:none;}
+
+#closeBtnUicds{
+  position:absolute;
+  top:1px;
+  right:4px;
+}
+#closeBtnUicds img{border:none;}
 
 .esriBookmarkItem{
   cursor:pointer;

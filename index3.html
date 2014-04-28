@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.8/js/dojo/dijit/themes/claro/document.css">
 
     <link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.8/js/dojo/dojox/layout/resources/FloatingPane.css">
+    <!--link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.8/js/dojo/dojox/layout/resources/ResizeHandle.css"-->
 
     <link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.8/js/esri/css/esri.css" />
 
@@ -17,11 +18,6 @@
     <![endif]-->
 
 
-	<style type="text/css">
-.nonModal_underlay {
-    display:none
-}
-	</style>
     <!-- BEGIN SOR -->
 
     <script type="text/javascript" src="javascript/angular.min.js"></script>
@@ -88,7 +84,7 @@
 		dojo.require("dojox.widget.Standby");
         dojo.require("dijit.form.DropDownButton");
         dojo.require("dijit.TooltipDialog");
-		dojo.require("dojox.layout.FloatingPane");
+        dojo.require("dojox.layout.FloatingPane");
 
         var i18n;
         dojo.ready(function () {
@@ -97,8 +93,11 @@
             var defaults = {
                 //The ID for the map from ArcGIS.com
                 //webmap: "f5b13dbed07c46cdb783cf361833aa6b",
-                webmap: "4a80dc00adc043eb8cdeef94f04604b5",
+                //webmap: "2b52f97785774f6bb3ab0b6d74abe84f",
+                webmap: "1a8fa627348242248061b5aded40bb27",
                 //webmap: "6efbc77bfba944909a05ee5200365048",
+                //4a80dc00adc043eb8cdeef94f04604b5
+                //1a8fa627348242248061b5aded40bb27
                 //Modify this to point to your sharing service URL if you are using the portal
                 sharingurl: "http://www.arcgis.com", //for example: "http://www.arcgis.com",
                 //The id for the web mapping application item that contains configuration info - in most
@@ -228,7 +227,7 @@
 </head>
 
 <body class="claro" data-ng-app="dojoUICDSApp" ng-controller="WorkProductsController">
-    <div id="bc" data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline', gutters:false" style="width:100%; height:100%;padding:0;">
+    <div id="bc1" data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline', gutters:false" style="width:100%; height:100%;padding:0;">
         <!-- Header Section-->
         <div id="header" data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'top'">
             <!--Title dyanmically generated -->
@@ -244,7 +243,7 @@
         <!--End Header-->
         <!-- Main Content Section (map, toolbars, left panel)-->
         <div id="mainWindow" data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'center'" style="width:100%;height:100%;">
-            <div data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline',gutters:false" style="width:100%;height:100%;padding:0;">
+            <div id="bcMainWindow" data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline',gutters:false" style="width:100%;height:100%;padding:0;">
                 <!-- Toolbar (Search Basemap Measure)-->
                 <div id="toolbarContainer_bv" data-dojo-type="dijit.layout.ContentPane" data-dojo-props='region:"top"'>
                     <div data-dojo-type="dijit.Toolbar">
@@ -261,7 +260,7 @@
                 </div>
                 <!--End Toolbar-->
                 <!--Left Panel-->
-                <div data-dojo-type="dijit.layout.BorderContainer" id="leftPane" data-dojo-props="design:'headline', gutters:false,region:'left'" style="height:100%;padding:0;display:none;"></div>
+                <div id="bc_leftPanel" data-dojo-type="dijit.layout.BorderContainer" id="leftPane" data-dojo-props="design:'headline', gutters:false,region:'left'" style="height:100%;padding:0;display:none;"></div>
                 <!--End Left Panel-->
                 <!-- Map Section -->
                 <div id="map" data-dojo-type="dijit.layout.ContentPane" data-dojo-props='region:"center"' dir="ltr">
@@ -273,19 +272,12 @@
                     <div id="floater">
                         <div id="measureDiv"></div>
                     </div>
+
                     <!--Floating window contains the time slider-->
                     <div id="timeFloater" style='display:none;'></div>
 
-
-
                     <!-- SOR START -->
-                    <button data-dojo-type="dijit/form/Button" type="button" onClick="uicdsDialog.show();" class="shadow" style="position:absolute; right:20px; top:35px; z-index:38;" showLabel="false" iconClass="uicdsIcon">UICDS</button> 
-                   <!-- 
-                    <button data-dojo-type="dijit/form/Button" type="button"  data-dojo-props=" onClick:function(){dijit.byId('uicdsDialog').show();}" class="shadow" style="position:absolute; right:20px; top:35px; z-index:38;" showLabel="false" iconClass="uicdsIcon">UICDS</button> -->
-                    
-                   
-                    
-                    
+                    <button data-dojo-type="dijit/form/Button" type="button" id="uicdsTool" class="shadow" style="position:absolute; right:20px; top:35px; z-index:100;" showLabel="false" iconClass="uicdsIcon">UICDS</button>
                     <button id="singleTool" data-dojo-type="dijit/form/Button" style="position:absolute; right:20px; top:65px; z-index:38;" type="button"}>Single
                     </button>
                     <button id="multiTool" data-dojo-type="dijit/form/Button" style="position:absolute; right:20px; top:90px; z-index:38;" type="button"}>Multiple
@@ -301,13 +293,13 @@
                             <button id="polyBuffer" data-dojo-type="dijit/form/Button" type="button">Polygon</button>
                         </div>
                     </div>
+                    <!--button id="testTool" data-dojo-type="dijit/form/Button" style="position:absolute; right:20px; top:140px; z-index:38;" type="button"}>Test
+                    </button-->
 
-                    <div data-dojo-type="dijit/Dialog" class="nonModal" data-dojo-id="uicdsDialog" id="uicdsDialog" title="ArcGIS UICDS Widget" style="width: 600px;"> 
-                    
-                  <!--  <div data-dojo-type="dojox.layout.FloatingPane" data-dojo-id="uicdsDialog" id="uicdsDialog" title="ArcGIS UICDS Widget" data-dojo-props="resizable:true, dockable:true" style="top:0;left:0;width:600px;height:100px;visibility:hidden;position:absolute;"
--->
-
-                        <div data-dojo-type="dijit/layout/BorderContainer" design="sidebar" style="min-width: 1em; min-height: 1px; z-index: 0; width: 100%; height: 330px;">
+                    <div data-dojo-type="dijit/Dialog" data-dojo-id="uicdsDialog" id="uicdsDialog" title="ArcGIS UICDS Widget" style="width: 600px;"> 
+             <!--       <div id="uicds_floater" style='display:none;'>
+                        <div data-dojo-type="dijit/layout/BorderContainer" design="sidebar" style="min-width: 1em; min-height: 1px; z-index: 0; width: 100%; height: 330px;"> -->
+                        
                             <div data-dojo-type="dijit/layout/ContentPane" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" doLayout="true" region="top" splitter="true" maxSize="80" style="height: 30px;" minSize="80" style="position:relative">
                                 <table>
                                     <tbody id="tbody_0" class="HtmlWidget">
@@ -460,7 +452,7 @@
                                 <input type="hidden" id="incident_descriptor" />
                             </div>
 
-
+         <!--</div> -->
                         </div>
                         <!-- End Border Container -->
                     </div>
@@ -480,7 +472,7 @@
 
     <div jsId="myContentStandby" dojoType="dojox.widget.Standby" target="dialogAddMyContent">
     <div jsId="dialogAddWebMapStandby" id="dialogAddWebMapStandby" dojoType="dojox.widget.Standby" target="dialogAddWebMap">
-    <div jsId="dialogAddGetIncidentsStandby" id="dialogAddGetIncidentsStandby" dojoType="dojox.widget.Standby" target="uicdsDialog">
+    <div jsId="dialogAddGetIncidentsStandby" id="dialogAddGetIncidentsStandby" dojoType="dojox.widget.Standby" target="uicds_floater">
 
         <div id="bottomPane" dojotype="dijit.layout.ContentPane" region="bottom" gutters="false" style="display:none;margin:10px 5px;width:auto;height:275px;background-color:white;">
             This is the bottom
@@ -491,4 +483,3 @@
 </body>
 
 </html>
-

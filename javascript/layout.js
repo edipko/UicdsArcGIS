@@ -1,4 +1,4 @@
-dojo.require("esri.widgets");
+﻿dojo.require("esri.widgets");
 dojo.require("esri.arcgis.utils");
 dojo.require("dojox.layout.FloatingPane");
 dojo.require("utilities.custommenu");
@@ -536,6 +536,8 @@ function getObjIDField (graphic) {
         objIdField = 'OBJECTID';
     else if (graphic.attributes['ObjectID'])
         objIdField = 'ObjectID';
+    else if (graphic.attributes['FID'])
+        objIdField = 'FID';
 
     return objIdField;
 }
@@ -558,7 +560,20 @@ function isValidExtent(extent) {
     } else {
         return true;
     }
+}
 
+function pan2location(longitude, latitude) {
+    var symbol = new esri.symbol.SimpleMarkerSymbol().setStyle(esri.symbol.SimpleMarkerSymbol.STYLE_X).setSize(12);
+    symbol.outline.setWidth(4).setColor("blue");
+
+    var pt = new esri.geometry.Point(longitude, latitude, new esri.SpatialReference(4326));
+    var pt_wm = esri.geometry.geographicToWebMercator(pt);
+    
+    var location = new esri.Graphic(pt_wm, symbol);
+    drawLayer.clear();
+    drawLayer.add(location);
+
+    map.setExtent(map.extent.centerAt(pt_wm));
 }
 
 function initUI(response) {
@@ -654,6 +669,9 @@ function initUI(response) {
     } else {
         esri.hide(dojo.byId('floater'));
     }
+
+    addUicdsWidget();
+    
     if (configOptions.displayelevation && configOptions.displaymeasure) {
 
         esri.show(dojo.byId('bottomPane'));
@@ -1131,14 +1149,20 @@ function addLayerList(layers) {
             }));
         });
 
+        var myDialog = new dijit.TooltipDialog({
+            content:menu
+        });
+
 
         var button = new dijit.form.DropDownButton({
             label: i18n.tools.layers.label,
             id: "layerBtn",
             iconClass: "esriLayerIcon",
             title: i18n.tools.layers.title,
-            dropDown: menu
+            dropDown: myDialog
         });
+
+        
 
         dojo.byId('webmap-toolbar-center').appendChild(button.domNode);
     }
@@ -1350,6 +1374,41 @@ function toggleMeasure() {
     }
 
 }
+
+function addUicdsWidget() {
+    var fp = new dojox.layout.FloatingPane({
+        title: "ArcGIS UICDS Widget",
+        resizable: false,
+        dockable: false,
+        closable: false,
+        style: "width:600px;z-index:100;visibility:hidden;",
+        id: 'uicds_floater'
+    }, dojo.byId('uicds_floater'));
+    fp.startup();
+
+    var titlePaneUicds = dojo.query('#uicds_floater .dojoxFloatingPaneTitle')[0];
+    //add close button to title pane
+    var closeDiv = dojo.create('div', {
+        id: "closeBtnUicds",
+        innerHTML: esri.substitute({
+            close_title: i18n.panel.close.title,
+            close_alt: i18n.panel.close.label
+        }, '<a alt=${close_alt} title=${close_title} href="JavaScript:toggleUicds();"><img  src="images/close.png"/></a>')
+    }, titlePaneUicds);
+
+    dojo.connect(dijit.byId("uicdsTool"), 'onClick', function(){
+        toggleUicds();
+    });
+}
+
+function toggleUicds() {
+    if (dojo.byId('uicds_floater').style.visibility === 'hidden') {
+        dijit.byId('uicds_floater').show();
+    } else {
+        dijit.byId('uicds_floater').hide();
+    }
+}
+
 
 function addOverview(isVisible) {
     //attachTo:bottom-right,bottom-left,top-right,top-left
@@ -2410,6 +2469,12 @@ function leidosDemo() {
             tb.activate('polygon');
         }
     });
+
+    
+    /*dojo.connect(dijit.byId("testTool"), 'onClick', function(){
+        pan2location(-118, 43);
+    });*/
+    
 
     dojo.connect(dojo.byId("content_submit"), 'onclick', function(evt){
         /* Startup the Standby Spinner */

@@ -186,9 +186,16 @@ function WorkProductsController($scope, $http) {
             data: xml
         }).
         success(function (data, status, headers, config) {
+			//viewRawXML(data);
             var result = xmlToJSON.parseString(data);
 			var inc_name = result.Envelope[0].Body[0].GetProductResponse[0].WorkProduct[0].Digest[0].Event[0].Identifier[0].text;
 			var inc_desc = result.Envelope[0].Body[0].GetProductResponse[0].WorkProduct[0].Digest[0].Event[0].Descriptor[0].text;
+			var latlng = result.Envelope[0].Body[0].GetProductResponse[0].WorkProduct[0].Digest[0].Location[0].GeoLocation[0].CircleByCenterPoint[0].CircleByCenterPoint[0].pos[0].text;
+			var latlng_array = latlng.split(" ");
+			var latitude = latlng_array[0];
+			var longitude = latlng_array[1];
+			pan2location(longitude, latitude);
+	
             $("#incident_name").val(inc_name);
 			$("#incident_descriptor").val(inc_desc);
 			
@@ -200,7 +207,7 @@ function WorkProductsController($scope, $http) {
         }).error(function (data, status, headers, config) {
             // called asynchronously if an error occurs
             // or server returns response with an error status.
-            alert('An error occured while attempting to load the agreement list from the core. Error code: ' + status);
+            alert('An error occured while attempting to load the work product from the core. Error code: ' + status);
             console.debug("DATA:" + data);
             console.debug("STATUS: " + status);
             console.debug("HEADERS: " + headers);
