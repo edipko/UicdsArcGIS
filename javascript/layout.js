@@ -226,8 +226,9 @@ function createMap(webmapitem) {
 	 $("#addWebMap_button").width("65px");
 	 $("#addMapLayer_button").width("65px");
 	 $("#addMapFeature_button").width("65px");
-	 $("#createIncident_button").width("65px");
-	 $("#addMyContent_button").width("65px");
+	 $("#createIncident_button").width("70px");
+	 $("#addMyContent_button").width("70px");
+	 
 	 
 	 leidosDemo();
 	 
@@ -2460,7 +2461,7 @@ function leidosDemo() {
             alert('Please make one layer visible.');
         }
         else if (isNaN(parseFloat(dijit.byId("distance").value))) {
-            alert('Please specify a diantance.');
+            alert('Please specify a distance.');
         }
         else {
             buffer = true;

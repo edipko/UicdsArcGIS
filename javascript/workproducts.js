@@ -1,4 +1,7 @@
 // JavaScript Document
+
+
+
   
 function WorkProductsController($scope, $http) {
 
@@ -108,7 +111,9 @@ function WorkProductsController($scope, $http) {
 			
 			require(["dijit/registry"], function(registry){
 	  		   registry.byId("dialogAddGetIncidentsStandby").hide();
+			   registry.byId("createIncident_button").setAttribute('disabled', false);
             });
+			
 
             // Debugging:
             // console.log("XML: " + data);
@@ -145,7 +150,7 @@ function WorkProductsController($scope, $http) {
             if (jsonURL != null) {
 			   registry.byId("addMapFeature_button").setAttribute('disabled', false);
 			}
-            registry.byId("createIncident_button").setAttribute('disabled', false);
+            
 			registry.byId("addMyContent_button").setAttribute('disabled', false);
             registry.byId("igidBox").setValue(IgID);
 
@@ -307,7 +312,7 @@ function WorkProductsController($scope, $http) {
                         // break the textblock into an array of lines
                         var lines = data.split('>');
                         lines.splice(0, 30);
-                        // Find the <str:WorkProductProperties> and make if for deletion
+                        // Find the <str:WorkProductProperties> and mark it for deletion
 
                         // We need to find a few tags so we can remove them
                         var wpp_start;
@@ -338,7 +343,7 @@ function WorkProductsController($scope, $http) {
                         //lines.splice(lines.length - 7, 7);
                         // join the array back into a single string
                         mapContextData = lines.join('>');
-                       // viewRawXML(mapContextData);
+                      //  viewRawXML(mapContextData);
                         $scope.submitMapData();
 
                     }).

@@ -38,10 +38,12 @@
     <script>
         <!-- Load Angular dojo module -->
          //  angular.module('dojoUICDSApp', ['angular-dojo','chieffancypants.loadingBar', 'ngAnimate']);
-        angular.module('dojoUICDSApp', ['angular-dojo']);
+        var dojoUICDSApp = angular.module('dojoUICDSApp', ['angular-dojo']);
 
          <!-- Reference to the workproduct -->
         var wp = null;
+
+     
     </script>
 
 
@@ -286,11 +288,68 @@
                    
                     
                     
-                    <button id="singleTool" data-dojo-type="dijit/form/Button" style="position:absolute; right:20px; top:65px; z-index:38;" type="button"}>Single
+                    <!-- Buttons went here -->
+                    
+                    
+
+                    <div data-dojo-type="dijit/Dialog" class="nonModal" data-dojo-id="uicdsDialog" id="uicdsDialog" title="ArcGIS UICDS Widget" style="width: 300px;"> 
+                    
+
+                        <div data-dojo-type="dijit/layout/BorderContainer" design="headline" style="min-width: 1em; min-height: 1px; z-index: 0; width: 100%; height: 330px;">
+                            <div data-dojo-type="dijit/layout/ContentPane" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" doLayout="true" region="top" splitter="true" maxSize="80" style="height: 30px;" minSize="80" style="position:relative">
+                                <table>
+                                    <tbody id="tbody_0" class="HtmlWidget">
+                                        <tr>
+                                            <td>
+                                                <label for="uicdsURL">UICDS URL:</label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <input value="https://uicds.spotonresponse.com" type="text" data-dojo-type="dijit/form/TextBox" id="uicdsURL" intermediateChanges="false" trim="false" uppercase="false" lowercase="false" propercase="false" selectOnClick="false"
+                                                style="width: 20em; left: 7px; top: 8px;">
+                                                </input>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div style="float:right; position:absolute; top:0; right:0"> <span class="dijit dijitReset dijitInline dijitButton" role="presentation" widgetid="uicdsConnectButton"> <span class="dijitReset dijitInline dijitButtonNode" role="presentation" ng-click="init()"> Fetch</span> </span>
+                                </div>
+                                <div style="float:clear"></div>
+                            </div>
+                            
+                            
+                            <div data-dojo-type="dijit/layout/ContentPane" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" doLayout="true" region="right" splitter="true" minSize="95" maxSize="95" style="width: 78px;">
+                                <table>
+                                   <tr>
+                                      <td>
+                                      <div id="shareTool" data-dojo-type="dijit/form/DropDownButton" style="width:65px;">
+                                      <span>Share</span>
+                                      <div data-dojo-type="dijit/TooltipDialog">
+                                         <button disabled id="addWebMap_button" data-dojo-type="dijit/form/Button" type="button" style="width:65px;">Map</button><br/>
+                                         <button disabled id="addMapLayer_button" data-dojo-type="dijit/form/Button" type="button" style="width:65px;">Layer</button><br/>
+                                         <button disabled id="addMapFeature_button" data-dojo-type="dijit/form/Button" type="button" style="width:65px;">Features
+                                         
+                                         <script type="dojo/method" data-dojo-event="onClick" data-dojo-args="evt">
+                                            $("#ofButtons").show();
+                                            $("#mapURL").val(jsonURL);
+                                            $("#jsonButton").prop("checked", true);
+                                         </script>
+                                      </button>
+                                      </div>
+                                      </div>
+
+                                      </td>
+                                   </tr>
+                                   <tr><td>&nbsp;</td></tr>
+                                   <tr><td>Feature Selection:</td></tr>
+                                   <tr><td>
+                                   <!-- Feature Buttons -->
+                                   <button id="singleTool" data-dojo-type="dijit/form/Button" type="button" style="width:65px;">Single
                     </button>
-                    <button id="multiTool" data-dojo-type="dijit/form/Button" style="position:absolute; right:20px; top:90px; z-index:38;" type="button"}>Multiple
+                    <button id="multiTool" data-dojo-type="dijit/form/Button" type="button" style="width:65px;">Multiple
                     </button>
-                    <div id="bufferTool" data-dojo-type="dijit/form/DropDownButton" style="position:absolute; right:20px; top:115px; z-index:38;">
+                    <div id="bufferTool" data-dojo-type="dijit/form/DropDownButton" style="width:65px;">
                         <span>Buffer</span>
                         <div data-dojo-type="dijit/TooltipDialog">
                             <label for="distance">Distance (in Miles):</label> 
@@ -301,55 +360,13 @@
                             <button id="polyBuffer" data-dojo-type="dijit/form/Button" type="button">Polygon</button>
                         </div>
                     </div>
-
-                    <div data-dojo-type="dijit/Dialog" class="nonModal" data-dojo-id="uicdsDialog" id="uicdsDialog" title="ArcGIS UICDS Widget" style="width: 600px;"> 
-                    
-                  <!--  <div data-dojo-type="dojox.layout.FloatingPane" data-dojo-id="uicdsDialog" id="uicdsDialog" title="ArcGIS UICDS Widget" data-dojo-props="resizable:true, dockable:true" style="top:0;left:0;width:600px;height:100px;visibility:hidden;position:absolute;"
--->
-
-                        <div data-dojo-type="dijit/layout/BorderContainer" design="sidebar" style="min-width: 1em; min-height: 1px; z-index: 0; width: 100%; height: 330px;">
-                            <div data-dojo-type="dijit/layout/ContentPane" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" doLayout="true" region="top" splitter="true" maxSize="80" style="height: 30px;" minSize="80" style="position:relative">
-                                <table>
-                                    <tbody id="tbody_0" class="HtmlWidget">
-                                        <tr>
-                                            <td>
-                                                <label for="uicdsURL">UICDS URL:</label>
-                                            </td>
-                                            <td>
-                                                <input value="https://uicds.spotonresponse.com" type="text" data-dojo-type="dijit/form/TextBox" id="uicdsURL" intermediateChanges="false" trim="false" uppercase="false" lowercase="false" propercase="false" selectOnClick="false"
-                                                style="width: 20em; left: 7px; top: 8px;">
-                                                </input>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <div style="float:right; position:absolute; top:0; right:0"> <span class="dijit dijitReset dijitInline dijitButton" role="presentation" widgetid="uicdsConnectButton"> <span class="dijitReset dijitInline dijitButtonNode" role="presentation" ng-click="init()"> Get<br/>
-            Incidents </span> </span>
-                                </div>
-                                <div style="float:clear"></div>
-                            </div>
-                            <div data-dojo-type="dijit/layout/ContentPane" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" doLayout="true" region="right" splitter="true" minSize="95" maxSize="95" style="width: 78px;">
-                                <button disabled id="addWebMap_button" data-dojo-type="dijit/form/Button" type="button">Share
-                                    <br/>Web
-                                    <br/>&nbsp;&nbsp;&nbsp;&nbsp;Map&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                </button>
-                                <button disabled id="addMapLayer_button" data-dojo-type="dijit/form/Button" type="button">Share
-                                    <br/>Map
-                                    <br/>&nbsp;&nbsp;&nbsp;Layer&nbsp;&nbsp;&nbsp;&nbsp;
-                                </button>
-                                <button disabled id="addMapFeature_button" data-dojo-type="dijit/form/Button" type="button">Share
-                                    <br/>Map
-                                    <br/>&nbsp;&nbsp;Feature&nbsp;&nbsp;
-                                    <script type="dojo/method" data-dojo-event="onClick" data-dojo-args="evt">
-                                        $("#ofButtons").show();
-                                        $("#mapURL").val(jsonURL);
-                                        $("#jsonButton").prop("checked", true);
-                                    </script>
-                                </button>
-
-                                <button disabled id="createIncident_button" data-dojo-type="dijit/form/Button" type="button">Create
-                                    <br/>New
-                                    <br/>&nbsp;&nbsp;Incident&nbsp;
+                                   
+                                   
+                                   <!-- End Feature Buttons -->
+                                   </td></tr>
+                            <tr><td>&nbsp;</td></tr>
+                                 </table>
+                                <button disabled id="createIncident_button" data-dojo-type="dijit/form/Button" type="button">+Incident
                                     <script type="dojo/method" data-dojo-event="onClick" data-dojo-args="evt">
                                         require(["dijit/registry"], function (registry) {
                                             registry.byId("ci_dt").setValue(new Date());
@@ -357,9 +374,8 @@
                                         });
                                     </script>
                                 </button>
-                                <button disabled id="addMyContent_button" data-dojo-type="dijit/form/Button" type="button">Add
-                                    <br/>My
-                                    <br/>&nbsp;&nbsp;Content&nbsp;
+                                <br/><br/>
+                                <button disabled id="addMyContent_button" data-dojo-type="dijit/form/Button" type="button">->Content
                                     <script type="dojo/method" data-dojo-event="onClick" data-dojo-args="evt">
                                         require(["dijit/registry"], function (registry) {
                                             registry.byId("dialogAddMyContent").show();
@@ -446,12 +462,15 @@
 
                                 <table ng-table="tableParams" id="incidents">
                                     <tbody ng-repeat="workproduct in workproducts" ng-click="getWPDetails(workproducts.indexOf(workproduct))" class="{{selected}}" style="padding:1px">
-                                        <tr class="ng-table-group" ng-class-odd="'alt'" style="padding:1px">
-                                            <td>
+                                        <tr class="ng-table-group" ng-class-odd="'alt'" style="padding:1px" tooltip="workproduct.PackageMetadata[0].WorkProductProperties[0].AssociatedGroups[0].Identifier[0].text">
+                                      <!--      <td>
                                                 <strong>{{workproduct.PackageMetadata[0].WorkProductProperties[0].AssociatedGroups[0].Identifier[0].text}}</strong>
                                             </td>
-                                            <td>
-                                                {{workproduct.Digest[0].Event[0].Identifier[0].text}}
+                                            -->
+                                            <td> <span title="{{workproduct.PackageMetadata[0].WorkProductProperties[0].AssociatedGroups[0].Identifier[0].text}}">
+                                                   {{workproduct.Digest[0].Event[0].Identifier[0].text}}
+                                              <span>
+                 
                                             </td>
                                         </tr>
                                     </tbody>
