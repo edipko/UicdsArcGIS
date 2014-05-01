@@ -2470,6 +2470,18 @@ function leidosDemo() {
 
     dojo.connect(dijit.byId("incidentBuffer"), 'onClick', function(){
         buffer = true;
+		
+		/*
+		 * Modified E. Dipko - 2014/05/01
+		 *   This is the lat/lng of the selected incident
+		 *   Using JQuery to get these values from a hidden input box
+		 *     because it is populated from within an Angular function
+		 *   These is probably a better way - but I know this is safe
+		 */
+		inc_latitude = $("#incident_latitude").val();
+		inc_longitude = $("#incident_longitude").val();
+		console.log("Incident lat/lng: " + inc_latitude + "/" + inc_longitude);
+		
         //incidentGeomatry = ?;
         //selectFeatures(incidentGeometry);
     });

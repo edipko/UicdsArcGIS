@@ -204,6 +204,13 @@ function WorkProductsController($scope, $http) {
             $("#incident_name").val(inc_name);
 			$("#incident_descriptor").val(inc_desc);
 			
+			/*
+			 * Modified E. Dipko - 05/01/2014
+			 *   Need to update buffer region around selected incident
+			 */
+			$("#incident_latitude").val(latitude);
+			$("#incident_longitude").val(longitude);
+			
             var wp_data = {
                 igid: IgID
             }
