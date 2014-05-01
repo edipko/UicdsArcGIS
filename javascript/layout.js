@@ -9,7 +9,7 @@ dojo.require("dojo.request");
 
 var map, tb;
 var markerSymbol, selectPointSymbol, selectPolylineSymbol, selectPolygonSymbol;
-var selectLayer, selectLayerID;
+var selectLayerURL="", selectLayer, selectLayerID;
 var featuresJSONStr;
 var drawLayer, bufferLayer;
 var clickHandler, clickListener;
@@ -411,7 +411,21 @@ function selectFeatures(geom)
     drawLayer.clear();
     bufferLayer.clear();
 
-    selectLayer = getVisibleLayers()[0];
+    selectLayer = null;
+    var layers = responseObj.itemInfo.itemData.operationalLayers;
+    dojo.forEach(layers, function (mapLayer, index) {
+        if (mapLayer.url == selectLayerURL) {
+            selectLayer = mapLayer;
+        }
+    });
+
+    if (!selectLayer) {
+        alert('Please select a layer first');
+        return;
+    }
+        
+
+    //selectLayer = getVisibleLayers()[0];
     selectLayerID = "";
     kmzURL = "";
 
@@ -2365,12 +2379,14 @@ function leidosDemo() {
 						  var cdataText = "<![CDATA[" + "]]>";
 						  var urlVal = dijit.byId("layerForm").attr("value").radioGroup;
 					      registry.byId("mapURL").set("value", urlVal);
+                          selectLayerURL = urlVal;
 						  
 						  if (responseObj.itemInfo.item.name) {
 		                     registry.byId("mapName").set("value", responseObj.itemInfo.item.name);
 	                      } else {
                              registry.byId("mapName").set("value", responseObj.itemInfo.item.title);
 	                      }
+                          
                           registry.byId("mapTitle").set("value", responseObj.itemInfo.item.title);
 		                  registry.byId("mapCData").set("value", cdataText);
 		
@@ -2378,8 +2394,6 @@ function leidosDemo() {
                           registry.byId("dialogAddWebMap").show();
 						  layerDialog.destroyRecursive();
                        });
-					
-			   		   
 					});
                  });  
     });
@@ -2402,35 +2416,24 @@ function leidosDemo() {
 
     dojo.style("singleTool", "width", "60px");
     dojo.connect(dijit.byId("singleTool"), 'onClick', function(){
-        if (getVisibleLayers().length != 1)
-            alert('Please make one layer visible.');
-        else {
-            buffer = false;
-            disablePopups();
-            map.disableMapNavigation();
-            tb.activate('point');
-        }
+        buffer = false;
+        disablePopups();
+        map.disableMapNavigation();
+        tb.activate('point');
     });
 
     dojo.style("multiTool", "width", "60px");
     dojo.connect(dijit.byId("multiTool"), 'onClick', function(){
-        if (getVisibleLayers().length != 1)
-            alert('Please make one layer visible.');
-        else {
-            buffer = false;
-            disablePopups();
-            map.disableMapNavigation();
-            tb.activate('extent');
-        }
+        buffer = false;
+        disablePopups();
+        map.disableMapNavigation();
+        tb.activate('extent');
     });
 
     dojo.style("bufferTool", "width", "60px");
 
     dojo.connect(dijit.byId("pointBuffer"), 'onClick', function(){
-        if (getVisibleLayers().length != 1) {
-            alert('Please make one layer visible.');
-        }
-        else if (isNaN(parseFloat(dijit.byId("distance").value))) {
+        if (isNaN(parseFloat(dijit.byId("distance").value))) {
             alert('Please specify a diantance.');
         }
         else {
@@ -2442,10 +2445,7 @@ function leidosDemo() {
     });
 
     dojo.connect(dijit.byId("lineBuffer"), 'onClick', function(){
-        if (getVisibleLayers().length != 1) {
-            alert('Please make one layer visible.');
-        }
-        else if (isNaN(parseFloat(dijit.byId("distance").value))) {
+        if (isNaN(parseFloat(dijit.byId("distance").value))) {
             alert('Please specify a diantance.');
         }
         else {
@@ -2457,10 +2457,7 @@ function leidosDemo() {
     });
 
     dojo.connect(dijit.byId("polyBuffer"), 'onClick', function(){
-        if (getVisibleLayers().length != 1) {
-            alert('Please make one layer visible.');
-        }
-        else if (isNaN(parseFloat(dijit.byId("distance").value))) {
+        if (isNaN(parseFloat(dijit.byId("distance").value))) {
             alert('Please specify a distance.');
         }
         else {
@@ -2469,6 +2466,12 @@ function leidosDemo() {
             map.disableMapNavigation();
             tb.activate('polygon');
         }
+    });
+
+    dojo.connect(dijit.byId("incidentBuffer"), 'onClick', function(){
+        buffer = true;
+        //incidentGeomatry = ?;
+        //selectFeatures(incidentGeometry);
     });
 
     
