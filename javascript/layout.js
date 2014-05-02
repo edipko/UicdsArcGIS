@@ -519,12 +519,12 @@ function showResult() {
     }
 
     if (selectLayerID !== "") {
-        jsonURL = selectLayer.url+'/'+selectLayerID+'/query?objectIds='+objectids+'&outFields=*&returnGeometry=true&f=json';
-        kmzURL = selectLayer.url+'/'+selectLayerID+'/query?objectIds='+objectids+'&outFields=*&returnGeometry=true&f=KMZ';
+        jsonURL = selectLayer.url+'/'+selectLayerID+'/query?where='+objIdField+'\+in\+('+objectids+')&outFields=*&returnGeometry=true&f=json';
+        kmzURL = selectLayer.url+'/'+selectLayerID+'/query?where='+objIdField+'\+in\+('+objectids+')&outFields=*&returnGeometry=true&f=KMZ';
     }
     else {
         //There is no KML output for feature service layer
-        jsonURL = selectLayer.url+'/query?objectIds='+objectids+'&outFields=*&returnGeometry=true&f=json';
+        jsonURL = selectLayer.url+'/'+selectLayerID+'/query?where='+objIdField+'\+in\+('+objectids+')&outFields=*&returnGeometry=true&f=json';
     }
    
 
@@ -2470,20 +2470,19 @@ function leidosDemo() {
 
     dojo.connect(dijit.byId("incidentBuffer"), 'onClick', function(){
         buffer = true;
-		
-		/*
-		 * Modified E. Dipko - 2014/05/01
-		 *   This is the lat/lng of the selected incident
-		 *   Using JQuery to get these values from a hidden input box
-		 *     because it is populated from within an Angular function
-		 *   These is probably a better way - but I know this is safe
-		 */
-		inc_latitude = $("#incident_latitude").val();
-		inc_longitude = $("#incident_longitude").val();
-		console.log("Incident lat/lng: " + inc_latitude + "/" + inc_longitude);
-		
-        //incidentGeomatry = ?;
-        //selectFeatures(incidentGeometry);
+
+        var pt = new esri.geometry.Point(-88.09, 37.48, new esri.SpatialReference(4326));
+
+        var singlePathPolyline = new esri.geometry.Polyline([[-122.68,45.53], [-122.58,45.55], [-122.57,45.58],[-122.53,45.6]]);
+        singlePathPolyline.spatialReference = new esri.SpatialReference(4326);
+
+        var singleRingPolygon = new esri.geometry.Polygon([[-122.63,45.52],[-122.57,45.53],[-122.52,45.50],[-122.49,45.48],
+    [-122.64,45.49],[-122.63,45.52],[-122.63,45.52]]);
+
+        singleRingPolygon.spatialReference = new esri.SpatialReference(4326);
+
+        incidentGeometry = esri.geometry.geographicToWebMercator(singleRingPolygon);
+        selectFeatures(incidentGeometry);
     });
 
     
