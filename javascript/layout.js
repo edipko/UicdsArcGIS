@@ -496,11 +496,23 @@ function selectFeatures(geom) {
         }
     }
 	
+	/*
+	 * Modified 5/2/2014 E. Dipko
+	 *
+	 * Fix bug where marker disappears after feature selection
+	 */
+	 
 	// Place the incident marker if it exists.
 		if ($("#incident_latitude").val() != "" ) {
 			pan2location($("#incident_longitude").val(), $("#incident_latitude").val());
 		}
+		
+	 
+	 // Added E. Dipko to try to fix bug... but causes error
+	 //showResult();
 }
+
+
 
 function showResult() {
     var objIdField = '';

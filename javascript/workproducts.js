@@ -192,7 +192,7 @@ function WorkProductsController($scope, $http) {
             data: xml
         }).
         success(function (data, status, headers, config) {
-            //viewRawXML(data);
+            viewRawXML(data);
             var result = xmlToJSON.parseString(data);
             var inc_name = result.Envelope[0].Body[0].GetProductResponse[0].WorkProduct[0].Digest[0].Event[0].Identifier[0].text;
             var inc_desc = result.Envelope[0].Body[0].GetProductResponse[0].WorkProduct[0].Digest[0].Event[0].Descriptor[0].text;
