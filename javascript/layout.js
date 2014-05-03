@@ -26,6 +26,8 @@ var kmzURL = null;
 var jsonURL = null;
 var layerTitle, layerURL, geomType, geomStr;
 var buffer;
+var layerPaneBuilt = false;
+
 
 function initMap(options) {
 /*Patch to fix issue with floating panes used to display the measure and time panel. They
@@ -422,12 +424,24 @@ function selectFeatures(geom)
     if (!selectLayer) {
         alert('Please select a layer first');
         return;
-    }
-        
-
+	}
+	   
+	
+	
+	
     //selectLayer = getVisibleLayers()[0];
     selectLayerID = "";
     kmzURL = "";
+	
+	/*
+	 * Added 05/02/2014 E. Dipko
+	 *  - Disable the feature share button, if it was enabled
+	 *  If all goes well in this function, it will get re-enabled when there is a valid JSON/KML URL to share
+	 */
+    require(["dijit/registry"], function (registry) {
+		registry.byId("addMapFeature_button").setAttribute('disabled', true);
+	});
+
 
     if (buffer) {
         var showBuffer = function(bufferedGeometries){
@@ -527,6 +541,13 @@ function showResult() {
         jsonURL = selectLayer.url+'/'+selectLayerID+'/query?where='+objIdField+'\+in\+('+objectids+')&outFields=*&returnGeometry=true&f=json';
     }
    
+    /*
+	 * Modified 05/02/2014 E. Dipko
+	 *  - we have a valid feature URL to share, to enable the UICDS share button for features
+	 */
+    require(["dijit/registry"], function (registry) {
+		registry.byId("addMapFeature_button").setAttribute('disabled', false);
+	});
 
     console.log('jsonURL: '+jsonURL);
     console.log('kmzURL: '+kmzURL);
@@ -2289,6 +2310,10 @@ function adjustPopupSize() {
 
 
 
+
+
+
+
 function leidosDemo() {
 	
 	console.log("Leidos functions active...");
@@ -2379,7 +2404,7 @@ function leidosDemo() {
 						  var cdataText = "<![CDATA[" + "]]>";
 						  var urlVal = dijit.byId("layerForm").attr("value").radioGroup;
 					      registry.byId("mapURL").set("value", urlVal);
-                          selectLayerURL = urlVal;
+                        //  selectLayerURL = urlVal;
 						  
 						  if (responseObj.itemInfo.item.name) {
 		                     registry.byId("mapName").set("value", responseObj.itemInfo.item.name);
@@ -2471,9 +2496,20 @@ function leidosDemo() {
     dojo.connect(dijit.byId("incidentBuffer"), 'onClick', function(){
         buffer = true;
 
-        var pt = new esri.geometry.Point(-88.09, 37.48, new esri.SpatialReference(4326));
+        /*
+		 * Modified E. Dipko - 2014/05/01
+		 *   This is the lat/lng of the selected incident
+		 *   Using JQuery to get these values from a hidden input box
+		 *     because it is populated from within an Angular function
+		 *   These is probably a better way - but I know this is safe
+		 */
+		inc_latitude = $("#incident_latitude").val();
+		inc_longitude = $("#incident_longitude").val();
 
-        var singlePathPolyline = new esri.geometry.Polyline([[-122.68,45.53], [-122.58,45.55], [-122.57,45.58],[-122.53,45.6]]);
+
+        var pt = new esri.geometry.Point(inc_longitude, inc_latitude, new esri.SpatialReference(4326));
+
+   /*     var singlePathPolyline = new esri.geometry.Polyline([[-122.68,45.53], [-122.58,45.55], [-122.57,45.58],[-122.53,45.6]]);
         singlePathPolyline.spatialReference = new esri.SpatialReference(4326);
 
         var singleRingPolygon = new esri.geometry.Polygon([[-122.63,45.52],[-122.57,45.53],[-122.52,45.50],[-122.49,45.48],
@@ -2482,6 +2518,9 @@ function leidosDemo() {
         singleRingPolygon.spatialReference = new esri.SpatialReference(4326);
 
         incidentGeometry = esri.geometry.geographicToWebMercator(singleRingPolygon);
+		
+		*/
+		incidentGeometry = esri.geometry.geographicToWebMercator(pt);
         selectFeatures(incidentGeometry);
     });
 
@@ -2648,7 +2687,92 @@ function leidosDemo() {
 		   });
        }
     });
+	
+	
+	
+	
+	/*
+	 * Added E. Dipko 05/02/2014
+	 * Layer selection for the feature selection
+	 */
+	 
+	
+	
+	dojo.connect(dijit.byId("selLayer_button"), 'onClick', function(){
+	
+         if (layerPaneBuilt == false) {
+		 
+  /* 
+				  * Set the title of the AddWebMap Dialog and get a handle to it
+				  */
+				 require(["dijit/registry"], function(registry){
+					   registry.byId("dialogAddWebMap").set("title", "Select Feature Layer");
+				 });
+				 
+				 var cp = null;
+				 
+                 require(["dijit/layout/ContentPane", "dojo/domReady!"], function(ContentPane){
+                    cp = new ContentPane({
+                       content:"<p>Optionally set new content now</p>",
+                       style:"height:220px;position:relative;overflow:scroll",
+					   region:"center",
+					   splitter:"true"
+                    }, "featureLayersPane");
+                 });
+				 	
+							
+				 var content = "<form id=\"featureLayerForm\" dojoType=\"dijit.form.Form\" jsId=\"featureLayerForm\">";
+                 var layers = responseObj.itemInfo.itemData.operationalLayers;
+				 dojo.forEach(layers, function (mapLayer, index) {
+                    if (mapLayer.layerObject && mapLayer.layerObject.visible) {
+					   content = content + "<input type='radio' data-dojo-type='dijit/form/RadioButton' " + 
+					                               " onClick='javascript:setSelectLayer();'" +
+												   " name='featureRadioGroup'" +
+												   " id='" + mapLayer.title +  "'" + 
+												   " value='" + mapLayer.url + "'/>" +
+										     "<label for=\"" + mapLayer.title + "\">" + "&nbsp;&nbsp;" + mapLayer.title + "</label> <br />"
+                       //console.log('Title: '+mapLayer.title+'\nURL: '+mapLayer.url);
+                    }
+                 });  
+				 content = content + "</form>"; 
+				 
+				 cp.set("content", content);
+				 layerPaneBuilt = true;
+	}
+				 require(["dijit/registry"], function(registry) {	
+		            registry.byId("featureLayerDialog").show();
+		         });
+				// layerDialog.show(); 
+				
+        });
+		
+		
 					
+}
+
+function setSelectLayer() {
+	
+	require(["dijit/registry"], function(registry){
+						   var selLayer = dijit.byId("featureLayerForm").attr("value").featureRadioGroup;
+                           selectLayerURL = selLayer;
+						   console.log("Layer choosen: " + selectLayerURL);
+						  // layerDialog.destroyRecursive();
+						  
+						  // Turn off all layers except the selected
+						  var layers = responseObj.itemInfo.itemData.operationalLayers;
+						 
+				          dojo.forEach(layers, function (layer, index) {
+							if (layer.layerObject) {
+								  console.log("Checking layer: " + layer.url);
+					         if (selLayer == layer.url) {
+								 layer.layerObject.setVisibility(true);
+							 } else {
+								 layer.layerObject.setVisibility(false);
+							 }
+							}
+						  });
+					 
+	});
 }
 
 	

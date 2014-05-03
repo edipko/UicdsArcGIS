@@ -154,6 +154,11 @@ function WorkProductsController($scope, $http) {
 			registry.byId("addMyContent_button").setAttribute('disabled', false);
             registry.byId("igidBox").setValue(IgID);
 
+            /* 
+			 * Modified 5/2/2014 E. Dipko
+			 * Enable the buffer feature button when an incident is selected
+			 */
+			registry.byId("incidentBuffer").setAttribute('disabled', false);
         });
 
 
