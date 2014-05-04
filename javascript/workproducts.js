@@ -15,6 +15,7 @@ function WorkProductsController($scope, $http) {
     var IgID;
     var mapContextData = "";
 
+    var mapData = "";
 
     /*
      * is function
@@ -23,9 +24,11 @@ function WorkProductsController($scope, $http) {
         return section == id;
     };
 
+    $scope.workproductList = null;
     $scope.workproducts = [];
     $scope.currentWorkproduct = 0;
     $scope.selectedWorkProduct = null;
+    $scope.mapContextLayers = [];
 
     // $scope.incidentMgmtEndpoint = $scope.uicdsURL + "/" + globals.incidentMgmtPath;
     // $scope.workproductMgmtEndpoint = $scope.uicdsURL + "/" + globals.workproductPath;
@@ -57,7 +60,6 @@ function WorkProductsController($scope, $http) {
         $("#jsonButton").prop("checked", true);
         $scope.refresh();
     }
-
 
 
     /*
@@ -135,7 +137,7 @@ function WorkProductsController($scope, $http) {
 
 
     $scope.getWPDetails = function (workproduct) {
-
+        $scope.mapContextLayers = [];
 
         //Get the IgID
         IgID = $scope.workproducts[workproduct].PackageMetadata[0].WorkProductProperties[0].AssociatedGroups[0].Identifier[0].text;
@@ -192,7 +194,7 @@ function WorkProductsController($scope, $http) {
             data: xml
         }).
         success(function (data, status, headers, config) {
-            viewRawXML(data);
+            // viewRawXML(data);
             var result = xmlToJSON.parseString(data);
             var inc_name = result.Envelope[0].Body[0].GetProductResponse[0].WorkProduct[0].Digest[0].Event[0].Identifier[0].text;
             var inc_desc = result.Envelope[0].Body[0].GetProductResponse[0].WorkProduct[0].Digest[0].Event[0].Descriptor[0].text;
@@ -217,6 +219,56 @@ function WorkProductsController($scope, $http) {
             }
 
             //alert("Incident is associated with: " + IgID);
+
+
+            /*
+             * Get the workproductList
+             */
+
+            var wp_data = {
+                igid: IgID
+            }
+
+            var xml = "";
+            require(["dojo/_base/lang", "dojo/dom", "dojo/domReady!"], function (lang, dom) {
+                xml = lang.replace(xmlGetAllWorkProductsTmpl, wp_data);
+            });
+
+            $http({
+                method: 'POST',
+                url: $scope.workproductMgmtEndpoint,
+                headers: {
+                    "Content-Type": "text/xml"
+                },
+                withCredentials: true,
+                data: xml
+            }).
+            success(function (data, status, headers, config) {
+                var result = xmlToJSON.parseString(data);
+                $scope.workproductList =
+                    avail(result, 'Envelope[0].Body[0].GetAssociatedWorkProductListResponse[0].WorkProductList[0]');
+
+                /* Get the MapContextDetails for the Incident if it exists */
+                $scope.getMapContextLayers();
+
+            }).error(function (data, status, headers, config) {
+                // called asynchronously if an error occurs
+                // or server returns response with an error status.
+                //
+                console.debug("DATA:" + data);
+                console.debug("STATUS: " + status);
+                console.debug("HEADERS: " + headers);
+                console.debug("CONFIG: " + config);
+                require(["dijit/registry"], function (registry) {
+                    registry.byId("dialogAddWebMapStandby").hide();
+                    registry.byId("dialogAddWebMap").hide();
+                });
+                alert('SubmitMap: An error occured fetching WorkProducts for the Incident. Error code: ' + status);
+
+            });
+
+
+
         }).error(function (data, status, headers, config) {
             // called asynchronously if an error occurs
             // or server returns response with an error status.
@@ -231,12 +283,166 @@ function WorkProductsController($scope, $http) {
     }
 
 
+    $scope.getMapContextData = function () {
+        /*
+         * Remove the SOAP envelope and just keep the WorkProduct data
+         */
+        // break the textblock into an array of lines
+        var lines = mapData.split('>');
+        lines.splice(0, 30);
+        // Find the <str:WorkProductProperties> and mark it for deletion
+
+        // We need to find a few tags so we can remove them
+        var wpp_start;
+        var wpp_end;
+        var ll_end;
+        for (l = 0; l < lines.length; l++) {
+            var string = lines[l].replace(/\s+/g, '');
+            switch (string) {
+            case "<str:WorkProductProperties":
+                //console.log("Found start");
+                wpp_start = l;
+                break;
+            case "</str:WorkProductProperties":
+                // console.log("Found end");
+                wpp_end = l;
+                break;
+            case "</wmc:LayerList":
+                // console.log("Found end ll");
+                ll_end = l;
+                break;
+            }
+        }
+        var linesToDelete = wpp_end - wpp_start;
+        //console.log("Start: " + wpp_start + " - End: " + wpp_end + " - layerlist: " + ll_end);		
+        lines.splice(ll_end + 0, 7);
+        lines.splice(wpp_start + 0, linesToDelete + 8, "<map:incidentId/");
+        // remove 3 lines at the end of the file
+        //lines.splice(lines.length - 7, 7);
+        // join the array back into a single string
+        mapContextData = lines.join('>');
+    }
+
+
+    /*
+     * Get MapContext Layers
+     */
+    $scope.getMapContextLayers = function () {
+        IgID = $("#igidBox").val()
+
+        // Show the Standby Spinner
+        require(["dijit/registry"], function (registry) {
+            registry.byId("dialogAddWebMapStandby").show();
+        });
+
+        var wp_data = {
+            igid: IgID
+        }
+
+        /*
+         * Get All workproducts
+         */
+        var xml = "";
+        require(["dojo/_base/lang", "dojo/dom", "dojo/domReady!"], function (lang, dom) {
+            xml = lang.replace(xmlGetAllWorkProductsTmpl, wp_data);
+        });
+
+
+
+        var mapViewContext = "";
+        var workproductList = $scope.workproductList;
+        if (workproductList.WorkProduct && workproductList.WorkProduct.length >
+            0) {
+            for (i = 0; i < workproductList.WorkProduct.length; i++) {
+                workproduct = workproductList.WorkProduct[i];
+                // wps.push(workproduct);
+                var dataItemID = workproduct.PackageMetadata[0].DataItemID[0].text;
+                if (dataItemID.indexOf("MapViewContext") == 0) {
+                    mapViewContext = dataItemID;
+                }
+            }
+
+            if (mapViewContext.indexOf("MapViewContext") == 0) {
+
+                var wp_data = {
+                    igid: IgID,
+                }
+
+                /*
+                 * Get the associated MapView
+                 */
+                var xml = "";
+                require(["dojo/_base/lang", "dojo/dom", "dojo/domReady!"], function (lang, dom) {
+                    xml = lang.replace(xmlGetMapViewTmpl, wp_data);
+                });
+
+                $http({
+                    method: 'POST',
+                    url: $scope.workproductMgmtEndpoint,
+                    headers: {
+                        "Content-Type": "text/xml"
+                    },
+                    withCredentials: true,
+                    data: xml
+                }).
+                success(function (data, status, headers, config) {
+                    mapData = data;
+                    $scope.getMapContextData();
+                    mcd = "<data>" + mapContextData + "</data>";
+                    var map_layers = avail(result, 'Envelope[0].Body[0].GetMapsResponse[0].WorkProduct[0]');
+
+                    var result = xmlToJSON.parseString(mcd);
+                    var layerlist = result.data[0].ViewContext[0].LayerList[0].Layer;
+
+                    /* 
+                     * Note - we purposly skip the first two entries
+                     *        this is the default layer and contains no valid data
+                     */
+                    for (i = 2; i < layerlist.length; i++) {
+                        wl = layerlist[i];
+                        console.log(decodeURIComponent(wl.Server[0].OnlineResource[0].attr.href.value));
+                        $scope.mapContextLayers.push({
+                            url: decodeURIComponent(wl.Server[0].OnlineResource[0].attr.href.value),
+                            title: wl.Title[0],
+                            name: wl.Name[0]
+                        });
+                    }
+                }).
+                error(function (data, status, headers, config) {
+                    // called asynchronously if an error occurs
+                    // or server returns response with an error status.
+                    require(["dijit/registry"], function (registry) {
+                        registry.byId("dialogAddWebMapStandby").hide();
+                        registry.byId("dialogAddWebMap").hide();
+                    });
+
+                    alert('SubmitMap: An error occured while fetching the MapView. Error code: ' + status);
+                    console.debug("DATA:" + data);
+                    console.debug("STATUS: " + status);
+                    console.debug("HEADERS: " + headers);
+                    console.debug("CONFIG: " + config);
+                });;
+            } else { // if no MapViewContext
+                /*
+                 * Current Incident does not have a MapViewContext so we will need to create one
+                 */
+                $("#getData").modal('toggle');
+                require(["dijit/registry"], function (registry) {
+                    registry.byId("dialogAddWebMapStandby").hide();
+                    registry.byId("dialogAddWebMap").hide();
+                });
+                alert("No Default MapContext");
+            }
+        } else {
+            alert('ERROR!!! No WorkProduct! Note the selected IG and contact the Administrator');
+        }
+
+    }
 
 
     /*
      * Submit new Map
      */
-
     $scope.submitMap = function () {
         IgID = $("#igidBox").val()
 
@@ -263,149 +469,82 @@ function WorkProductsController($scope, $http) {
         });
 
 
-        $http({
-            method: 'POST',
-            url: $scope.workproductMgmtEndpoint,
-            headers: {
-                "Content-Type": "text/xml"
-            },
-            withCredentials: true,
-            data: xml
-        }).
-        success(function (data, status, headers, config) {
-            console.log("In Success");
-            var result = xmlToJSON.parseString(data);
-            var workproductList =
-                avail(result, 'Envelope[0].Body[0].GetAssociatedWorkProductListResponse[0].WorkProductList[0]');
-            var mapViewContext = "";
 
-            if (workproductList.WorkProduct && workproductList.WorkProduct.length >
-                0) {
-                for (i = 0; i < workproductList.WorkProduct.length; i++) {
-                    workproduct = workproductList.WorkProduct[i];
-                    // wps.push(workproduct);
-                    var dataItemID = workproduct.PackageMetadata[0].DataItemID[0].text;
-                    if (dataItemID.indexOf("MapViewContext") == 0) {
-                        mapViewContext = dataItemID;
-                    }
+        var mapViewContext = "";
+        var workproductList = $scope.workproductList;
+        if (workproductList.WorkProduct && workproductList.WorkProduct.length >
+            0) {
+            for (i = 0; i < workproductList.WorkProduct.length; i++) {
+                workproduct = workproductList.WorkProduct[i];
+                // wps.push(workproduct);
+                var dataItemID = workproduct.PackageMetadata[0].DataItemID[0].text;
+                if (dataItemID.indexOf("MapViewContext") == 0) {
+                    mapViewContext = dataItemID;
+                }
+            }
+
+            if (mapViewContext.indexOf("MapViewContext") == 0) {
+
+                var wp_data = {
+                    igid: IgID,
                 }
 
-                if (mapViewContext.indexOf("MapViewContext") == 0) {
+                /*
+                 * Get the associated MapView
+                 */
+                var xml = "";
+                require(["dojo/_base/lang", "dojo/dom", "dojo/domReady!"], function (lang, dom) {
+                    xml = lang.replace(xmlGetMapViewTmpl, wp_data);
+                });
 
-                    var wp_data = {
-                        igid: IgID,
-                    }
+                $http({
+                    method: 'POST',
+                    url: $scope.workproductMgmtEndpoint,
+                    headers: {
+                        "Content-Type": "text/xml"
+                    },
+                    withCredentials: true,
+                    data: xml
+                }).
+                success(function (data, status, headers, config) {
+                    mapData = data;
+                    $scope.getMapContextData();
+                    //  viewRawXML(mapContextData);
+                    $scope.submitMapData();
 
-                    /*
-                     * Get the associated MapView
-                     */
-                    var xml = "";
-                    require(["dojo/_base/lang", "dojo/dom", "dojo/domReady!"], function (lang, dom) {
-                        xml = lang.replace(xmlGetMapViewTmpl, wp_data);
-                    });
-
-                    $http({
-                        method: 'POST',
-                        url: $scope.workproductMgmtEndpoint,
-                        headers: {
-                            "Content-Type": "text/xml"
-                        },
-                        withCredentials: true,
-                        data: xml
-                    }).
-                    success(function (data, status, headers, config) {
-                        /*
-                         * Remove the SOAP envelope and just keep the WorkProduct data
-                         */
-                        // break the textblock into an array of lines
-                        var lines = data.split('>');
-                        lines.splice(0, 30);
-                        // Find the <str:WorkProductProperties> and mark it for deletion
-
-                        // We need to find a few tags so we can remove them
-                        var wpp_start;
-                        var wpp_end;
-                        var ll_end;
-                        for (l = 0; l < lines.length; l++) {
-                            var string = lines[l].replace(/\s+/g, '');
-                            switch (string) {
-                            case "<str:WorkProductProperties":
-                                //console.log("Found start");
-                                wpp_start = l;
-                                break;
-                            case "</str:WorkProductProperties":
-                                // console.log("Found end");
-                                wpp_end = l;
-                                break;
-                            case "</wmc:LayerList":
-                                // console.log("Found end ll");
-                                ll_end = l;
-                                break;
-                            }
-                        }
-                        var linesToDelete = wpp_end - wpp_start;
-                        //console.log("Start: " + wpp_start + " - End: " + wpp_end + " - layerlist: " + ll_end);		
-                        lines.splice(ll_end + 0, 7);
-                        lines.splice(wpp_start + 0, linesToDelete + 8, "<map:incidentId/");
-                        // remove 3 lines at the end of the file
-                        //lines.splice(lines.length - 7, 7);
-                        // join the array back into a single string
-                        mapContextData = lines.join('>');
-                        //  viewRawXML(mapContextData);
-                        $scope.submitMapData();
-
-                    }).
-                    error(function (data, status, headers, config) {
-                        // called asynchronously if an error occurs
-                        // or server returns response with an error status.
-                        require(["dijit/registry"], function (registry) {
-                            registry.byId("dialogAddWebMapStandby").hide();
-                            registry.byId("dialogAddWebMap").hide();
-                        });
-
-                        alert('SubmitMap: An error occured while fetching the MapView. Error code: ' + status);
-                        console.debug("DATA:" + data);
-                        console.debug("STATUS: " + status);
-                        console.debug("HEADERS: " + headers);
-                        console.debug("CONFIG: " + config);
-                    });;
-                } else { // if MapViewContext
-                    /*
-                     * Current Incident does not have a MapViewContext so we will need to create one
-                     */
-                    $("#getData").modal('toggle');
+                }).
+                error(function (data, status, headers, config) {
+                    // called asynchronously if an error occurs
+                    // or server returns response with an error status.
                     require(["dijit/registry"], function (registry) {
                         registry.byId("dialogAddWebMapStandby").hide();
                         registry.byId("dialogAddWebMap").hide();
                     });
-                    alert("No Default MapContext");
 
-                }
-
-            } else {
+                    alert('SubmitMap: An error occured while fetching the MapView. Error code: ' + status);
+                    console.debug("DATA:" + data);
+                    console.debug("STATUS: " + status);
+                    console.debug("HEADERS: " + headers);
+                    console.debug("CONFIG: " + config);
+                });;
+            } else { // if no MapViewContext
+                /*
+                 * Current Incident does not have a MapViewContext so we will need to create one
+                 */
+                $("#getData").modal('toggle');
                 require(["dijit/registry"], function (registry) {
                     registry.byId("dialogAddWebMapStandby").hide();
                     registry.byId("dialogAddWebMap").hide();
                 });
-                alert('ERROR!!! No WorkProduct! Note the selected IG and contact the Administrator');
+                alert("No Default MapContext");
             }
-        }).error(function (data, status, headers, config) {
-            // called asynchronously if an error occurs
-            // or server returns response with an error status.
-            //
-            console.debug("DATA:" + data);
-            console.debug("STATUS: " + status);
-            console.debug("HEADERS: " + headers);
-            console.debug("CONFIG: " + config);
+        } else {
             require(["dijit/registry"], function (registry) {
                 registry.byId("dialogAddWebMapStandby").hide();
                 registry.byId("dialogAddWebMap").hide();
             });
-            alert('SubmitMap: An error occured fetching WorkProducts for the Incident. Error code: ' + status);
-
-        });
-
-
+            alert('ERROR!!! No WorkProduct! Note the selected IG and contact the Administrator');
+        }
     };
 
 

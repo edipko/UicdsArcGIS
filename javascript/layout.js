@@ -429,7 +429,7 @@ function selectFeatures(geom) {
 
 
 
-    //selectLayer = getVisibleLayers()[0];
+    selectLayer = getVisibleLayers()[0];
     selectLayerID = "";
     kmzURL = "";
 
@@ -495,21 +495,21 @@ function selectFeatures(geom) {
             queryMapLayer(geom);
         }
     }
-	
-	/*
-	 * Modified 5/2/2014 E. Dipko
-	 *
-	 * Fix bug where marker disappears after feature selection
-	 */
-	 
-	// Place the incident marker if it exists.
-		if ($("#incident_latitude").val() != "" ) {
-			pan2location($("#incident_longitude").val(), $("#incident_latitude").val());
-		}
-		
-	 
-	 // Added E. Dipko to try to fix bug... but causes error
-	 //showResult();
+
+    /*
+     * Modified 5/2/2014 E. Dipko
+     *
+     * Fix bug where marker disappears after feature selection
+     */
+
+    // Place the incident marker if it exists.
+    if ($("#incident_latitude").val() != "") {
+        pan2location($("#incident_longitude").val(), $("#incident_latitude").val());
+    }
+
+
+    // Added E. Dipko to try to fix bug... but causes error
+    //showResult();
 }
 
 
@@ -2524,6 +2524,28 @@ function leidosDemo() {
     });*/
 
 
+
+    dojo.connect(dojo.byId("context_submit"), 'onclick', function (evt) {
+
+
+        if ($("input[name=contextSelection]:checked").val()) {
+            /* Startup the Standby Spinner */
+            myContentStandby.show();
+
+            var a = jQuery.parseJSON($("input[name=contextSelection]:checked").val());
+
+
+            var title = a['name']['text'] + " - Incident";
+            var description = "This URL is to a KML feed that contains the " + a['name']['text'] + " Incident Share Product you have selected.";
+            var tags = tags = "emergency, " + a['name']['text'] + ", geospatial, GIS, map";
+            var url = a['url'];
+
+            // Add to MyContent
+            addMyContent(url, title, description, tags);
+        }
+
+    });
+
     dojo.connect(dojo.byId("content_submit"), 'onclick', function (evt) {
         /* Startup the Standby Spinner */
         myContentStandby.show();
@@ -2577,79 +2599,9 @@ function leidosDemo() {
 
 
         console.log("URL is: " + url);
-        //try to access a restricted content
-        var contentRequest = esri.request({
-            url: configOptions.sharingurl + "/sharing/rest/content/users/morentzj",
-            content: {
-                f: "json"
-            },
-            handleAs: "json",
-            callbackParamName: "callback"
-        });
-        contentRequest.then(
-            function (response) {
-                console.log("Success: ", response);
-                var userInfoRequest = esri.request({
-                    url: configOptions.sharingurl + "/sharing/rest/portals/self",
-                    content: {
-                        f: "json"
-                    },
-                    handleAs: "json",
-                    callbackParamName: "callback"
-                });
-                userInfoRequest.then(
-                    function (response) {
-                        console.log("Success: ", response);
-                        if (response.user) {
-                            username = response.user.username;
-                            //Add content
-                            var layersRequest = esri.request({
-                                url: configOptions.sharingurl + "/sharing/rest/content/users/" + username + "/addItem",
-                                content: {
-                                    f: "json",
-                                    type: "KML",
-                                    url: url,
-                                    title: title,
-                                    description: description,
-                                    tags: tags,
-                                    spatialReference: "3857",
-                                    extent: "-117,-14,174,71"
-                                },
-                                handleAs: "json",
-                                callbackParamName: "callback"
-                            }, {
-                                usePost: true
-                            });
 
-                            layersRequest.then(
-                                function (response) {
-                                    console.log("Success: ", "Item " + response.id + " is added successfully.");
-                                    alert("Item " + response.id + " added successfully.");
-                                    myContentStandby.hide();
-                                    dialogAddMyContent.hide();
-                                }, function (error) {
-                                    alert("An error occurred adding to my content. Error: " + error);
-                                    myContentStandby.hide();
-                                    dialogAddMyContent.hide();
-                                }
-                            );
-                        } else {
-                            alert("User is not logged in.")
-                            myContentStandby.hide();
-                        }
-                    },
-                    function (error) {
-                        console.log("Error: ", error.message);
-                        myContentStandby.hide();
-                    }
-                );
-            },
-            function (error) {
-                console.log("Error: ", error.message);
-                alert("Please log in to add content. - error: " + error.message);
-                dialogAddMyContent.hide();
-            }
-        );
+        // Add to MyContent
+        addMyContent(url, title, description, tags);
     });
 
 
@@ -2770,11 +2722,89 @@ function setSelectLayer() {
                 }
             }
         });
-		
-		// Place the incident marker if it exists.
-		if ($("#incident_latitude").val() != "" ) {
-			pan2location($("#incident_longitude").val(), $("#incident_latitude").val());
-		}
+
+        // Place the incident marker if it exists.
+        if ($("#incident_latitude").val() != "") {
+            pan2location($("#incident_longitude").val(), $("#incident_latitude").val());
+        }
 
     });
+
+}
+
+
+
+function addMyContent(url, title, description, tags) {
+    var contentRequest = esri.request({
+        url: configOptions.sharingurl + "/sharing/rest/content/users/morentzj",
+        content: {
+            f: "json"
+        },
+        handleAs: "json",
+        callbackParamName: "callback"
+    });
+    contentRequest.then(
+        function (response) {
+            console.log("Success: ", response);
+            var userInfoRequest = esri.request({
+                url: configOptions.sharingurl + "/sharing/rest/portals/self",
+                content: {
+                    f: "json"
+                },
+                handleAs: "json",
+                callbackParamName: "callback"
+            });
+            userInfoRequest.then(
+                function (response) {
+                    console.log("Success: ", response);
+                    if (response.user) {
+                        username = response.user.username;
+                        //Add content
+                        var layersRequest = esri.request({
+                            url: configOptions.sharingurl + "/sharing/rest/content/users/" + username + "/addItem",
+                            content: {
+                                f: "json",
+                                type: "KML",
+                                url: url,
+                                title: title,
+                                description: description,
+                                tags: tags,
+                                spatialReference: "3857",
+                                extent: "-117,-14,174,71"
+                            },
+                            handleAs: "json",
+                            callbackParamName: "callback"
+                        }, {
+                            usePost: true
+                        });
+
+                        layersRequest.then(
+                            function (response) {
+                                console.log("Success: ", "Item " + response.id + " is added successfully.");
+                                alert("Item " + response.id + " added successfully.");
+                                myContentStandby.hide();
+                                dialogAddMyContent.hide();
+                            }, function (error) {
+                                alert("An error occurred adding to my content. Error: " + error);
+                                myContentStandby.hide();
+                                dialogAddMyContent.hide();
+                            }
+                        );
+                    } else {
+                        alert("User is not logged in.")
+                        myContentStandby.hide();
+                    }
+                },
+                function (error) {
+                    console.log("Error: ", error.message);
+                    myContentStandby.hide();
+                }
+            );
+        },
+        function (error) {
+            console.log("Error: ", error.message);
+            alert("Please log in to add content. - error: " + error.message);
+            dialogAddMyContent.hide();
+        }
+    );
 }
