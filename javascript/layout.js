@@ -12,7 +12,7 @@ var markerSymbol, selectPointSymbol, selectPolylineSymbol, selectPolygonSymbol;
 var selectLayerURL = "",
     selectLayer, selectLayerID;
 var featuresJSONStr;
-var drawLayer, bufferLayer;
+var drawLayer, drawLayer2, bufferLayer;
 var clickHandler, clickListener;
 var editLayers = [],
     editorWidget;
@@ -317,6 +317,8 @@ function initToolbar() {
     map.addLayer(bufferLayer);
     drawLayer = new esri.layers.GraphicsLayer();
     map.addLayer(drawLayer);
+    drawLayer2 = new esri.layers.GraphicsLayer();
+    map.addLayer(drawLayer2);
 
     tb = new esri.toolbars.Draw(map);
     esri.bundle.toolbars.draw.addPoint = "Click on a feature to select";
@@ -517,6 +519,7 @@ function selectFeatures(geom) {
 function showResult() {
     var objIdField = '';
     objIdField = getObjIDField(drawLayer.graphics[0]);
+        
     objectids = getObjectIDs(objIdField);
 
     var featureSet = new esri.tasks.FeatureSet();
@@ -616,8 +619,8 @@ function pan2location(longitude, latitude) {
     var pt_wm = esri.geometry.geographicToWebMercator(pt);
 
     var location = new esri.Graphic(pt_wm, symbol);
-    drawLayer.clear();
-    drawLayer.add(location);
+    drawLayer2.clear();
+    drawLayer2.add(location);
 
     map.setExtent(map.extent.centerAt(pt_wm));
 }
