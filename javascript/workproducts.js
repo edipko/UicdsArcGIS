@@ -30,9 +30,6 @@ function WorkProductsController($scope, $http) {
     $scope.selectedWorkProduct = null;
     $scope.mapContextLayers = [];
 
-    // $scope.incidentMgmtEndpoint = $scope.uicdsURL + "/" + globals.incidentMgmtPath;
-    // $scope.workproductMgmtEndpoint = $scope.uicdsURL + "/" + globals.workproductPath;
-
     $scope.incidentMgmtEndpoint = "";
     $scope.workproductMgmtEndpoint = "";
     $scope.mapEndpoint = globals.mapPath;
@@ -40,7 +37,7 @@ function WorkProductsController($scope, $http) {
     /*
      * These will be the functions that get called
      */
-    $scope.buttons = [{
+ /*   $scope.buttons = [{
         name: "AddWebMap"
     }, {
         name: "AddMapLayer"
@@ -48,7 +45,7 @@ function WorkProductsController($scope, $http) {
         name: "AddMapFeature"
     }];
 
-
+*/
     $scope.init = function () {
 
         // Show the Standby Spinner
@@ -330,11 +327,6 @@ function WorkProductsController($scope, $http) {
     $scope.getMapContextLayers = function () {
         IgID = $("#igidBox").val()
 
-        // Show the Standby Spinner
-        require(["dijit/registry"], function (registry) {
-            registry.byId("dialogAddWebMapStandby").show();
-        });
-
         var wp_data = {
             igid: IgID
         }
@@ -411,11 +403,6 @@ function WorkProductsController($scope, $http) {
                 error(function (data, status, headers, config) {
                     // called asynchronously if an error occurs
                     // or server returns response with an error status.
-                    require(["dijit/registry"], function (registry) {
-                        registry.byId("dialogAddWebMapStandby").hide();
-                        registry.byId("dialogAddWebMap").hide();
-                    });
-
                     alert('SubmitMap: An error occured while fetching the MapView. Error code: ' + status);
                     console.debug("DATA:" + data);
                     console.debug("STATUS: " + status);
@@ -427,10 +414,6 @@ function WorkProductsController($scope, $http) {
                  * Current Incident does not have a MapViewContext so we will need to create one
                  */
                 $("#getData").modal('toggle');
-                require(["dijit/registry"], function (registry) {
-                    registry.byId("dialogAddWebMapStandby").hide();
-                    registry.byId("dialogAddWebMap").hide();
-                });
                 alert("No Default MapContext");
             }
         } else {
@@ -446,12 +429,9 @@ function WorkProductsController($scope, $http) {
     $scope.submitMap = function () {
         IgID = $("#igidBox").val()
 
-        //  require(["dijit/registry"], function(registry){
-        //		registry.byId("dialogAddWebMap").hide();
-        //  });
-
 
         // Show the Standby Spinner
+		console.log("Starting submitMap Standby");
         require(["dijit/registry"], function (registry) {
             registry.byId("dialogAddWebMapStandby").show();
         });
@@ -553,6 +533,7 @@ function WorkProductsController($scope, $http) {
     }
 
     $scope.submitMapData = function () {
+		console.log("Starting submitMapData Standby");
         require(["dijit/registry"], function (registry) {
             registry.byId("dialogAddWebMapStandby").show();
         });

@@ -321,7 +321,7 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>&nbsp;</td>
+                                        <td><br/><br/><hr/></td>
                                     </tr>
                                 </table>
                                 <button disabled id="createIncident_button" data-dojo-type="dijit/form/Button" type="button">
@@ -350,10 +350,21 @@
                                     console.log("Got URL: " + url);
                                     if (url === "json") {
                                         useURL = jsonURL;
+										jQuery("#mapForm input:radio[id=jsonButton]:first").attr('selected', true);
                                     } else {
                                         useURL = kmzURL;
+										jQuery("#mapForm input:radio[id=kmzButton]:first").attr('selected', true);
                                     }
                                     $("#mapURL").val(useURL);
+									
+									console.log("kmzURL length: " + kmzURL.length);
+									if (kmzURL == "") {
+										jQuery("#mapForm input:radio[id=kmzButton]:first").attr('disabled', true);
+										dijit.byId('kmzButton').set('disabled',true);
+									}
+									if (jsonURL == "") {
+										jQuery("#mapForm input:radio[id=jsonButton]:first").attr('disabled', true);
+									}
                                 }
                             </script>
                             <div id="dialogAddWebMap" data-dojo-type="dijit/Dialog" title="" style="width:400px;">

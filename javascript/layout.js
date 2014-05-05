@@ -2377,12 +2377,17 @@ function leidosDemo() {
             });
         });
 
-        var content = "<form id=\"layerForm\" dojoType=\"dijit.form.Form\" jsId=\"layerForm\">";
+        var content = "<form id=\"maplayerForm\" dojoType=\"dijit.form.Form\" jsId=\"maplayerForm\">";
         dojo.forEach(layers, function (mapLayer, index) {
-            if (mapLayer.layerObject && mapLayer.layerObject.visible) {
+           /*
+		    * Modified E. Dipko.  05/05/2014
+			* - Show all layers, not just visible ones
+			*/
+		   // if (mapLayer.layerObject && mapLayer.layerObject.visible) {
+			  if (mapLayer.layerObject) {
                 content = content + "<input type='radio' data-dojo-type='dijit/form/RadioButton' " +
                     " name='radioGroup'" +
-                    " id='" + mapLayer.title + "'" +
+                    " id='ml_" + mapLayer.title + "'" +
                     " value='" + mapLayer.url + "'/>" +
                     "<label for=\"" + mapLayer.title + "\">" + "&nbsp;&nbsp;" + mapLayer.title + "</label> <br />"
                 console.log('Title: ' + mapLayer.title + '\nURL: ' + mapLayer.url);
@@ -2395,6 +2400,10 @@ function leidosDemo() {
         content = content + "</form>";
 
         layerDialog.set("content", content);
+		layerDialog.set("hide", function() {
+			layerDialog.destroyRecursive();
+		});
+		
         layerDialog.show();
 
         require(["dijit/Dialog", "dojo/domReady!"], function () {
@@ -2402,7 +2411,7 @@ function leidosDemo() {
                 require(["dijit/registry"], function (registry) {
 
                     var cdataText = "<![CDATA[" + "]]>";
-                    var urlVal = dijit.byId("layerForm").attr("value").radioGroup;
+                    var urlVal = dijit.byId("maplayerForm").attr("value").radioGroup;
                     registry.byId("mapURL").set("value", urlVal);
                     //  selectLayerURL = urlVal;
 
