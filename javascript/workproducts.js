@@ -65,6 +65,8 @@ function WorkProductsController($scope, $http) {
     $scope.refresh = function () {
 
         $scope.uicdsURL = $("#uicdsURL").val();
+		console.log("Setting localStorage - uicdsurl: " + $scope.uicdsURL);
+		localStorage.setItem('uicdsurl', $scope.uicdsURL);
         $scope.incidentMgmtEndpoint = $scope.uicdsURL + "/" + globals.incidentMgmtPath;
         $scope.workproductMgmtEndpoint = $scope.uicdsURL + "/" + globals.workproductPath;
 
@@ -197,9 +199,11 @@ function WorkProductsController($scope, $http) {
             var inc_desc = result.Envelope[0].Body[0].GetProductResponse[0].WorkProduct[0].Digest[0].Event[0].Descriptor[0].text;
             var latlng = result.Envelope[0].Body[0].GetProductResponse[0].WorkProduct[0].Digest[0].Location[0].GeoLocation[0].CircleByCenterPoint[0].CircleByCenterPoint[0].pos[0].text;
             var latlng_array = latlng.split(" ");
-            var latitude = latlng_array[0];
-            var longitude = latlng_array[1];
-            pan2location(longitude, latitude);
+            var latitude = latlng_array[0].replace(',','');
+            var longitude = latlng_array[1].replace(',','');
+            
+			
+			pan2location(longitude, latitude);
 
             $("#incident_name").val(inc_name);
             $("#incident_descriptor").val(inc_desc);

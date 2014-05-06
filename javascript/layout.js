@@ -28,7 +28,7 @@ var jsonURL = null;
 var layerTitle, layerURL, geomType, geomStr;
 var buffer;
 var layerPaneBuilt = false;
-
+var flp = null;  //Feature Layer Pane
 
 function initMap(options) {
     /*Patch to fix issue with floating panes used to display the measure and time panel. They
@@ -518,6 +518,14 @@ function selectFeatures(geom) {
 
 function showResult() {
     var objIdField = '';
+	
+	/*
+	 * Modification E. Dipko - 05/05/2014
+	 * - Reset the json and KMZ url variables
+	 */
+	jsonURL = '';
+	kmzURL = '';
+	
     objIdField = getObjIDField(drawLayer.graphics[0]);
         
     objectids = getObjectIDs(objIdField);
@@ -612,6 +620,8 @@ function isValidExtent(extent) {
 }
 
 function pan2location(longitude, latitude) {
+	
+	//console.log("In pan2location, got lat/lon: " + latitude + "/" + longitude);
     var symbol = new esri.symbol.SimpleMarkerSymbol().setStyle(esri.symbol.SimpleMarkerSymbol.STYLE_X).setSize(12);
     symbol.outline.setWidth(4).setColor("blue");
 
@@ -2663,7 +2673,13 @@ function leidosDemo() {
 
     dojo.connect(dijit.byId("selLayer_button"), 'onClick', function () {
 
-        if (layerPaneBuilt == false) {
+        /*
+		 * Modification E. Dipko - 05/05/2014
+		 *  - Delete the contents of the dialog if it was previously created
+		 */
+        if (layerPaneBuilt == true) {
+			flp.destroyRecursive();
+		}
 
             /* 
              * Set the title of the AddWebMap Dialog and get a handle to it
@@ -2672,15 +2688,14 @@ function leidosDemo() {
                 registry.byId("dialogAddWebMap").set("title", "Select Feature Layer");
             });
 
-            var cp = null;
 
             require(["dijit/layout/ContentPane", "dojo/domReady!"], function (ContentPane) {
-                cp = new ContentPane({
+                flp = new ContentPane({
                     content: "<p>Optionally set new content now</p>",
                     style: "height:220px;position:relative;overflow:scroll",
                     region: "center",
                     splitter: "true"
-                }, "featureLayersPane");
+                }).placeAt("featureLayersPanePersistent");;
             });
 
 
@@ -2699,9 +2714,9 @@ function leidosDemo() {
             });
             content = content + "</form>";
 
-            cp.set("content", content);
+            flp.set("content", content);
             layerPaneBuilt = true;
-        }
+        
         require(["dijit/registry"], function (registry) {
             registry.byId("featureLayerDialog").show();
         });
