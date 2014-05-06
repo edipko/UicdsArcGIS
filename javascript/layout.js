@@ -29,6 +29,7 @@ var layerTitle, layerURL, geomType, geomStr;
 var buffer;
 var layerPaneBuilt = false;
 var flp = null;  //Feature Layer Pane
+var incident_marker = null;
 
 function initMap(options) {
     /*Patch to fix issue with floating panes used to display the measure and time panel. They
@@ -622,18 +623,19 @@ function isValidExtent(extent) {
 function pan2location(longitude, latitude) {
 	
 	//console.log("In pan2location, got lat/lon: " + latitude + "/" + longitude);
-    var symbol = new esri.symbol.SimpleMarkerSymbol().setStyle(esri.symbol.SimpleMarkerSymbol.STYLE_X).setSize(12);
-    symbol.outline.setWidth(4).setColor("blue");
+    incident_marker = new esri.symbol.SimpleMarkerSymbol().setStyle(esri.symbol.SimpleMarkerSymbol.STYLE_X).setSize(12);
+    incident_marker.outline.setWidth(4).setColor("blue");
 
     var pt = new esri.geometry.Point(longitude, latitude, new esri.SpatialReference(4326));
     var pt_wm = esri.geometry.geographicToWebMercator(pt);
 
-    var location = new esri.Graphic(pt_wm, symbol);
+    var location = new esri.Graphic(pt_wm, incident_marker);
     drawLayer2.clear();
     drawLayer2.add(location);
 
     map.setExtent(map.extent.centerAt(pt_wm));
 }
+
 
 function initUI(response) {
     dojo.connect(dijit.byId('map'), 'resize', resizeMap);
