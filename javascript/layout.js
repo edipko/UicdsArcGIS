@@ -9,8 +9,7 @@ dojo.require("dojo.request");
 
 var map, tb;
 var markerSymbol, selectPointSymbol, selectPolylineSymbol, selectPolygonSymbol;
-var selectLayerURL = "",
-    selectLayer, selectLayerID;
+var selectLayerURL = "", selectLayer, selectLayerID, selectLayerExtent;
 var featuresJSONStr;
 var drawLayer, drawLayer2, bufferLayer;
 var clickHandler, clickListener;
@@ -30,6 +29,7 @@ var buffer;
 var layerPaneBuilt = false;
 var flp = null;  //Feature Layer Pane
 var incident_marker = null;
+var objIdField = '';
 
 function initMap(options) {
     /*Patch to fix issue with floating panes used to display the measure and time panel. They
@@ -368,6 +368,7 @@ function queryFeatureLayer(geom) {
             });
             map.getLayer(selectLayer.id).clearSelection();
             map.getLayer(selectLayer.id).refresh();
+            selectLayerExtent = esri.geometry.webMercatorToGeographic(map.extent);
             drawLayer.refresh();
             showResult();
         }
@@ -403,6 +404,7 @@ function queryMapLayer(geom) {
 
                 drawLayer.add(graphic);
             }
+            selectLayerExtent = esri.geometry.webMercatorToGeographic(map.extent);
             drawLayer.refresh();
             showResult();
         }
@@ -518,8 +520,6 @@ function selectFeatures(geom) {
 
 
 function showResult() {
-    var objIdField = '';
-	
 	/*
 	 * Modification E. Dipko - 05/05/2014
 	 * - Reset the json and KMZ url variables
@@ -560,7 +560,7 @@ function showResult() {
         kmzURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=KMZ';
     } else {
         //There is no KML output for feature service layer
-        jsonURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json';
+        jsonURL = selectLayer.url + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json';
     }
 
     /*
@@ -2543,9 +2543,108 @@ function leidosDemo() {
     });
 
 
-    /*dojo.connect(dijit.byId("testTool"), 'onClick', function(){
-        pan2location(-118, 43);
-    });*/
+    dojo.connect(dijit.byId("testTool"), 'onClick', function(){
+        //try to access a restricted content
+        var contentRequest = esri.request({
+          url: configOptions.sharingurl + "/sharing/rest/content/users/lli_dbs",
+          content: { f: "json" },
+          handleAs: "json",
+          callbackParamName: "callback"
+        });
+        contentRequest.then(
+            function(response) {
+                console.log("Success: ", response);
+                addContent();
+            },
+            function(error) {
+                console.log("Error: ", error.message);
+                if (error.httpCode == 403) {
+                   addContent();
+                }
+                else {
+                    alert("Please log in to add content.");
+                }
+            }
+        );
+
+        function addContent() {
+            var userInfoRequest = esri.request({
+            url: configOptions.sharingurl + "/sharing/rest/portals/self",
+                content: { f: "json" },
+                handleAs: "json",
+                callbackParamName: "callback"
+            });
+            userInfoRequest.then(
+                function(response) {
+                    console.log("Success: ", response);
+                    if (response.user) {
+                        username = response.user.username;
+                        //Add content
+                        console.log(selectLayer.url);
+
+                        var layerURL = "";
+                        if (selectLayerID !== "") 
+                            layerURL = selectLayer.url+'/'+selectLayerID;
+                        else
+                            layerURL = selectLayer.url;
+
+                        var layersRequest = esri.request({
+                            url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/addItem",
+                            content: { f: "json",
+                            type: "Feature Service",
+                            url: layerURL,
+                            title: selectLayer.title,
+                            text:"",
+                            extent: selectLayerExtent.xmin+","+selectLayerExtent.ymin+","+selectLayerExtent.xmax+","+selectLayerExtent.ymax
+                            },
+                            handleAs: "json",
+                            callbackParamName: "callback"
+                        }, {usePost: true});
+                        
+                        layersRequest.then(
+                            function(response) {
+                                console.log("Success: ", "Item "+response.id+" is added successfully.");
+                                alert("Item "+response.id+" is added successfully.");
+
+                                var subLayerID;
+                                if (selectLayerID == "")
+                                    subLayerID = 0;
+                                else
+                                    subLayerID = selectLayerID;
+
+                                var updateRequest = esri.request({
+                                    url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/items/"+response.id+"/update",
+                                    content: {
+                                       f: "json",
+                                       text: dojo.toJson({"layers":[{"id":subLayerID,"layerDefinition":{"definitionExpression":  objIdField+" in ("+objectids + ")"}}]})
+                                    },
+                                    handleAs: "json",
+                                    callbackParamName: "callback"
+                                }, {usePost: true});
+        
+                                updateRequest.then(
+                                    function(response) {
+                                        console.log("Success: ");
+                                    }, function(error) {
+                                        alert("An error occurred adding to my content. Error: " + error);
+                                    }
+                                );
+                            }, function(error) {
+                                alert(error.message);
+                            }
+                        );
+                    }
+                    else {
+                        alert("User is not logged in.")
+                    }
+                },
+                function(error) {
+                    console.log("Error: ", error.message);
+                }
+            );
+        }
+
+    });
 
 
 
