@@ -285,14 +285,42 @@ function WorkProductsController($scope, $http) {
 
 
     $scope.getMapContextData = function () {
-        /*
+       console.log("getMapConextData - before");
+	   console.log(mapData);
+	    /*
          * Remove the SOAP envelope and just keep the WorkProduct data
          */
         // break the textblock into an array of lines
         var lines = mapData.split('>');
         lines.splice(0, 30);
-        // Find the <str:WorkProductProperties> and mark it for deletion
+		
+		
+	    // Delete the Digest from the new jar if it exists
+        var digest_start;
+		var digest_end;
+		for (l = 0; l < lines.length; l++) {
+            var string = lines[l].replace(/\s+/g, '');
+            switch (string) {
+			case "<Digest":
+			    digest_start = l;
+				break;
+		    case "</Digest":
+			    digest_end = l;
+				break;
+            }
+        }
+		linesToDelete = digest_end - digest_start;
+		lines.splice(digest_start + 0, linesToDelete);
+				
 
+        // join the array back into a single string
+        mapContextData = lines.join('>');
+		
+		
+		
+		// Find the <str:WorkProductProperties> and mark it for deletion	   	
+		lines = mapContextData.split('>');
+		
         // We need to find a few tags so we can remove them
         var wpp_start;
         var wpp_end;
@@ -314,14 +342,15 @@ function WorkProductsController($scope, $http) {
                 break;
             }
         }
-        var linesToDelete = wpp_end - wpp_start;
-        //console.log("Start: " + wpp_start + " - End: " + wpp_end + " - layerlist: " + ll_end);		
+        var linesToDelete = wpp_end - wpp_start;		
         lines.splice(ll_end + 0, 7);
         lines.splice(wpp_start + 0, linesToDelete + 8, "<map:incidentId/");
-        // remove 3 lines at the end of the file
-        //lines.splice(lines.length - 7, 7);
+
         // join the array back into a single string
         mapContextData = lines.join('>');
+		
+		console.log("getMapConextData - after");
+		console.log(mapContextData);
     }
 
 

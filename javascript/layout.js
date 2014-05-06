@@ -2700,23 +2700,17 @@ function leidosDemo() {
             tags = "emergency,  " + incidentName;
             url = uicds_base + "/pub/search?format=kml&productType=Incident&interestGroup=" + ig;
             break;
-        case 'contentIncidentSoi':
-            title = incidentName + " – Incident and Observations";
-            description = "This URL is to a KML feed that contains the " + incidentName + " Incident Share Product you have selected plus the Sensor Observation Share Product containing field observations or sensor data.";
+        case 'contentSoi':
+            title = incidentName + " – Observations";
+            description = "This URL is to a KML feed that contains the Sensor Observation Share Product containing field observations or sensor data for " + incidentName;
             tags = "emergency,  " + incidentName + ", human sensor, sensor";
-            url = uicds_base + "/pub/search?format=kml&productType=Incident&productType=SOI&interestGroup=" + ig;
+            url = uicds_base + "/pub/search?format=kml&productType=SOI&interestGroup=" + ig;
             break;
-        case 'contentIncidentMap':
-            title = incidentName + " – Incident and Map Context Geospatial Sources";
-            description = "This URL is to a KML feed that contains the " + incidentName + " Incident Share Product you have selected plus the Map Context Share Product containing associated geospatial information related to the incident.";
-            tags = "emergency, " + incidentName + ", geospatial, GIS, map";
-            url = uicds_base + "/pub/search?format=kml&productType=Incident&productType=MapViewContext&interestGroup=" + ig;
-            break;
-        case 'contentIncidentAll':
-            title = incidentName + " – All Share Products";
-            description = "This URL is to a KML feed that contains all " + incidentName + " Share Products which you can adapt to select specific products.";
-            tags = "emergency, " + incidentName;
-            url = uicds_base + "/pub/search?format=kml&productType=Incident&productType=SOI&productType=Alert&productType=MapViewContext&productType=CommitResource&productType=RequestResource&interestGroup=" + ig;
+        case 'contentResourceCommits':
+            title = incidentName + " – Resource Commits";
+            description = "This URL is to a KML feed that contains Resource Commit Share Products for " + incidentName;
+            tags = "emergency, " + incidentName;k
+            url = uicds_base + "/pub/search?format=kml&productType=Incident&productType=CommitResource&interestGroup=" + ig;
             break;
         }
 

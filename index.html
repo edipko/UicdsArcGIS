@@ -435,12 +435,15 @@
 
 
                             <!-- This is the My Content Dialog -->
+                            <!-- Changes Made - E. Dipko - 5/6/2014 
+                                 Remove MapContext Selection
+                                 Change Incident+SOI to just SOI
+                                 -->
                             <div id="dialogAddMyContent" data-dojo-id="dialogAddMyContent" data-dojo-type="dijit/Dialog" title="Add My Content" style="width:400px;" refreshOnShow="true">
                                 <div data-dojo-type="dojox.layout.TableContainer" customClass="contentTable" data-dojo-props="cols:1" id="tc3">
-                                    <input checked type="radio" label="Incident Only" data-dojo-type="dijit.form.RadioButton" name="contentSelection" id="selIncident" value="contentIncident">
-                                    <input type="radio" label="Incident + SOI" data-dojo-type="dijit.form.RadioButton" name="contentSelection" id="selIncidentSoi" value="contentIncidentSoi">
-                                    <input type="radio" label="Incident + MapContext" data-dojo-type="dijit.form.RadioButton" name="contentSelection" id="selIncidentMap" value="contentIncidentMap">
-                                    <input type="radio" label="All WorkProducts" data-dojo-type="dijit.form.RadioButton" name="contentSelection" id="selIncidentAll" value="contentIncidentAll">
+                                    <input checked type="radio" label="Incident" data-dojo-type="dijit.form.RadioButton" name="contentSelection" id="selIncident" value="contentIncident">
+                                    <input type="radio" label="Observations" data-dojo-type="dijit.form.RadioButton" name="contentSelection" id="selIncidentSoi" value="contentSoi">
+                                    <input type="radio" label="All WorkProducts" data-dojo-type="dijit.form.RadioButton" name="contentSelection" id="selIncidentAll" value="contentResourceCommits">
                                 </div>
                                 <div data-dojo-type="dijit/form/Button" label="Submit Selection" id="content_submit"></div>
 
