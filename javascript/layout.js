@@ -434,7 +434,7 @@ function selectFeatures(geom) {
 
 
 
-    selectLayer = getVisibleLayers()[0];
+    //selectLayer = getVisibleLayers()[0];
     selectLayerID = "";
     kmzURL = "";
 
@@ -2799,7 +2799,7 @@ function leidosDemo() {
             dojo.forEach(layers, function (mapLayer, index) {
                 if (mapLayer.layerObject && mapLayer.layerObject.visible) {
                     content = content + "<input type='radio' data-dojo-type='dijit/form/RadioButton' " +
-                        " onClick='javascript:setSelectLayer();'" +
+                        " onChange='javascript:setSelectLayer();'" +
                         " name='featureRadioGroup'" +
                         " id='" + mapLayer.title + "'" +
                         " value='" + mapLayer.url + "'/>" +
@@ -2832,7 +2832,7 @@ function setSelectLayer() {
         // layerDialog.destroyRecursive();
 
         // Turn off all layers except the selected
-        var layers = responseObj.itemInfo.itemData.operationalLayers;
+        /*var layers = responseObj.itemInfo.itemData.operationalLayers;
 
         dojo.forEach(layers, function (layer, index) {
             if (layer.layerObject) {
@@ -2843,7 +2843,7 @@ function setSelectLayer() {
                     layer.layerObject.setVisibility(false);
                 }
             }
-        });
+        });*/
 
         // Place the incident marker if it exists.
         if ($("#incident_latitude").val() != "") {
