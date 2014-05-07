@@ -285,41 +285,45 @@ function WorkProductsController($scope, $http) {
 
 
     $scope.getMapContextData = function () {
-       console.log("getMapConextData - before");
-	   console.log(mapData);
-	    /*
-         * Remove the SOAP envelope and just keep the WorkProduct data
-         */
+      // console.log("getMapConextData - before");
+	  // console.log(mapData);
+	
         // break the textblock into an array of lines
         var lines = mapData.split('>');
-        lines.splice(0, 30);
-		
-		
+			
 	    // Delete the Digest from the new jar if it exists
         var digest_start;
 		var digest_end;
 		for (l = 0; l < lines.length; l++) {
-            var string = lines[l].replace(/\s+/g, '');
+            var string = lines[l].replace(/\s+/g, '').substring(0,7);
             switch (string) {
 			case "<Digest":
 			    digest_start = l;
+				console.log("Got Digest start");
 				break;
-		    case "</Digest":
+		    case "</Diges":
+			    console.log("Got digest end");
 			    digest_end = l;
 				break;
             }
         }
-		linesToDelete = digest_end - digest_start;
-		lines.splice(digest_start + 0, linesToDelete);
-				
+		linesToDelete = digest_end - digest_start + 1;
+		lines.splice(digest_start + 0, linesToDelete);			
 
         // join the array back into a single string
         mapContextData = lines.join('>');
 		
+		//console.log("MapContext after remove digest:");
+		//console.log(mapContextData);
 		
+	
 		
 		// Find the <str:WorkProductProperties> and mark it for deletion	   	
 		lines = mapContextData.split('>');
+	    
+        // Remove the SOAP envelope and just keep the WorkProduct data
+        lines.splice(0, 30);
+		
 		
         // We need to find a few tags so we can remove them
         var wpp_start;
@@ -349,8 +353,8 @@ function WorkProductsController($scope, $http) {
         // join the array back into a single string
         mapContextData = lines.join('>');
 		
-		console.log("getMapConextData - after");
-		console.log(mapContextData);
+		//console.log("getMapConextData - after");
+		//console.log(mapContextData);
     }
 
 
