@@ -293,27 +293,17 @@
                                 <table>
                                     <tr>
                                         <td>
-                                            <div id="shareTool" data-dojo-type="dijit/form/DropDownButton" style="width:65px;">
+                                          <!--  <div id="shareTool" data-dojo-type="dijit/form/DropDownButton" style="width:65px;">
                                                 <span>Share</span>
                                                 <div data-dojo-type="dijit/TooltipDialog">
+                                                -->
                                                     <button disabled id="addWebMap_button" data-dojo-type="dijit/form/Button" type="button" style="width:65px;">Map</button>
                                                     <br/>
                                                     <button disabled id="addMapLayer_button" data-dojo-type="dijit/form/Button" type="button" style="width:65px;">Layer</button>
-                                                    <br/>
-                                                    <button disabled id="addMapFeature_button" data-dojo-type="dijit/form/Button" type="button" style="width:65px;">
-                                                        Features
-                                                        <script type="dojo/method" data-dojo-event="onClick" data-dojo-args="evt">
-                                                            $("#ofButtons").show();
-                                                            $("#mapURL").val(jsonURL);
-                                                            $("#jsonButton").prop("checked", true);
-                                                        </script>
-                                                    </button>
-                                                </div>
-                                            </div>
+
+                                          <!--      </div>
+                                            </div> -->
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td>&nbsp;</td>
                                     </tr>
                                     <tr>
                                         <td>Feature Selection:</td>
@@ -324,10 +314,16 @@
                                                 Layers
                                             </button>
                                             <!-- End Feature Buttons -->
+                                                                                                <button disabled id="addMapFeature_button" data-dojo-type="dijit/form/Button" type="button" style="width:65px;">
+                                                        Features
+                                                        <script type="dojo/method" data-dojo-event="onClick" data-dojo-args="evt">
+                                                            $("#ofButtons").show();
+                                                            $("#mapURL").val(jsonURL);
+                                                            $("#jsonButton").prop("checked", true);
+                                                        </script>
+                                                    </button>
+                                                    <hr/>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td><br/><hr/></td>
                                     </tr>
                                 </table>
                                 <button disabled id="createIncident_button" data-dojo-type="dijit/form/Button" type="button">
@@ -339,8 +335,6 @@
                                         });
                                     </script>
                                 </button>
-                                <br/>
-                                <br/>
                                 <button disabled id="addMyContent_button" data-dojo-type="dijit/form/Button" type="button">
                                     ->Content
                                     <script type="dojo/method" data-dojo-event="onClick" data-dojo-args="evt">
