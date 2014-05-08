@@ -574,6 +574,9 @@ function showResult() {
     console.log('jsonURL: ' + jsonURL);
     console.log('kmzURL: ' + kmzURL);
     console.log('featuresJSONStr: ' + featuresJSONStr);
+	
+	populateNewIncidentDialog(featuresJSONStr);
+	
 }
 
 function getObjectIDs(objIdField) {
@@ -2855,78 +2858,154 @@ function setSelectLayer() {
 }
 
 
+function addMyContent(mapurl, title, description, tags) {
+	//try to access a restricted content
+        var contentRequest = esri.request({
+          url: configOptions.sharingurl + "/sharing/rest/content/users/lli_dbs",
+          content: { f: "json" },
+          handleAs: "json",
+          callbackParamName: "callback"
+        });
+        contentRequest.then(
+            function(response) {
+                console.log("Success: ", response);
+                addContent();
+            },
+            function(error) {
+                console.log("Error: ", error.message);
+                if (error.httpCode == 403) {
+                   addContent();
+                }
+                else {
+                    alert("Please log in to add content.");
+                }
+            }
+        );
 
-function addMyContent(url, title, description, tags) {
-    var contentRequest = esri.request({
-        url: configOptions.sharingurl + "/sharing/rest/content/users/morentzj",
-        content: {
-            f: "json"
-        },
-        handleAs: "json",
-        callbackParamName: "callback"
-    });
-    contentRequest.then(
-        function (response) {
-            console.log("Success: ", response);
+        function addContent() {
             var userInfoRequest = esri.request({
-                url: configOptions.sharingurl + "/sharing/rest/portals/self",
-                content: {
-                    f: "json"
-                },
+            url: configOptions.sharingurl + "/sharing/rest/portals/self",
+                content: { f: "json" },
                 handleAs: "json",
                 callbackParamName: "callback"
             });
             userInfoRequest.then(
-                function (response) {
+                function(response) {
                     console.log("Success: ", response);
                     if (response.user) {
                         username = response.user.username;
                         //Add content
+                        console.log("URL to MyContent: " + mapurl);
                         var layersRequest = esri.request({
-                            url: configOptions.sharingurl + "/sharing/rest/content/users/" + username + "/addItem",
-                            content: {
-                                f: "json",
-                                type: "KML",
-                                url: url,
-                                title: title,
-                                description: description,
-                                tags: tags,
-                                spatialReference: "3857",
-                                extent: "-117,-14,174,71"
+                            url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/addItem",
+                            content: { f: "json",
+                            type: "Feature Service",
+                            url: mapurl,
+                            title: title,
+                            text:"",
+                            extent: selectLayerExtent.xmin+","+selectLayerExtent.ymin+","+selectLayerExtent.xmax+","+selectLayerExtent.ymax
                             },
                             handleAs: "json",
                             callbackParamName: "callback"
-                        }, {
-                            usePost: true
-                        });
-
+                        }, {usePost: true});
+						
+						
                         layersRequest.then(
-                            function (response) {
-                                console.log("Success: ", "Item " + response.id + " is added successfully.");
-                                alert("Item " + response.id + " added successfully.");
-                                myContentStandby.hide();
-                                dialogAddMyContent.hide();
-                            }, function (error) {
-                                alert("An error occurred adding to my content. Error: " + error);
-                                myContentStandby.hide();
-                                dialogAddMyContent.hide();
+                            function(response) {
+                                console.log("Success: ", "Item "+response.id+" is added successfully.");
+                                alert("Item "+response.id+" is added successfully.");
+
+                                var subLayerID;
+                                if (selectLayerID == "")
+                                    subLayerID = 0;
+                                else
+                                    subLayerID = selectLayerID;
+
+                                var updateRequest = esri.request({
+                                    url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/items/"+response.id+"/update",
+                                    content: {
+                                       f: "json",
+                                       text: dojo.toJson({"layers":[{"id":subLayerID,"layerDefinition":{"definitionExpression":  objIdField+" in ("+objectids + ")"}}]})
+                                    },
+                                    handleAs: "json",
+                                    callbackParamName: "callback"
+                                }, {usePost: true});
+        
+                                updateRequest.then(
+                                    function(response) {
+                                        console.log("Success: ");
+                                    }, function(error) {
+                                        alert("An error occurred adding to my content. Error: " + error);
+                                    }
+                                );
+                            }, function(error) {
+                                alert(error.message);
                             }
                         );
-                    } else {
+                    }
+                    else {
                         alert("User is not logged in.")
-                        myContentStandby.hide();
                     }
                 },
-                function (error) {
+                function(error) {
                     console.log("Error: ", error.message);
-                    myContentStandby.hide();
                 }
             );
-        },
-        function (error) {
-            console.log("Error: ", error.message);
-            alert("Please log in to add content. - error: " + error.message);
-            dialogAddMyContent.hide();
         }
-    );
+}
+
+function populateNewIncidentDialog(featuresJSONStr) {
+	// Parse the JSON string.
+    obj = JSON.parse(featuresJSONStr);
+	var latitude = obj.features[0].attributes.Latitude;
+	var longitude = obj.features[0].attributes.Longitude;
+	var location = obj.features[0].attributes.Address;
+	var description = "<![CDATA[" + featuresJSONStr + "]]>";
+/*	
+	{
+   "spatialReference":{
+      "wkid":102100,
+      "latestWkid":3857
+   },
+   "geometryType":"esriGeometryPoint",
+   "features":[
+      {
+         "geometry":{
+            "x":-13799496.215300001,
+            "y":4993248.137599997,
+            "spatialReference":{
+               "wkid":102100,
+               "latestWkid":3857
+            }
+         },
+         "attributes":{
+            "OBJECTID":"49187",
+            "Shape":"Point",
+            "Reg_ID":"110001173998",
+            "Facility Name":"CALIFORNIA REDWOOD",
+            "Address":"1165 MAPLE CREEK ROAD",
+            "City":"KORBEL",
+            "State":"CA",
+            "Zip Code":"95550",
+            "Latitude":"40.870425",
+            "Longitude":"-123.962984",
+            "Horizontal Datum":"NAD83",
+            "Facility URL":"http://oaspub.epa.gov/enviro/fac_gateway.main?p_regid=110001173998"
+         }
+      }
+   ]
+}
+	
+	
+*/	
+	
+	require(["dijit/registry"], function (registry) {
+		registry.byId("ci_lat").set("value", latitude);
+		registry.byId("ci_lon").set("value", longitude);
+		registry.byId("ci_desc").set("value", description);
+		registry.byId("ci_location").set("value", location);
+		//registry.byId("ci_mapURL").set("value", );
+		//registry.byId("ci_mapName").set("value", );
+		//registry.byId("ci_mapTitle").set("value", );
+	});
 }
