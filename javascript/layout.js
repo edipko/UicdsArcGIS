@@ -232,11 +232,10 @@ function createMap(webmapitem) {
         $("#addMapFeature_button").width("65px");
         $("#createIncident_button").width("70px");
         $("#addMyContent_button").width("70px");
+		$("#selLayer_button").width("65px");
 
 
         leidosDemo();
-
-
 
         configOptions.owner = response.itemInfo.item.owner;
         document.title = configOptions.title || response.itemInfo.item.title;
@@ -566,9 +565,13 @@ function showResult() {
     /*
      * Modified 05/02/2014 E. Dipko
      *  - we have a valid feature URL to share, to enable the UICDS share button for features
+	 * Modification 05/09/2014 E. Dipko
+	 *  - Only enable the create Incident Button after a feature is selected
+	 *  - THen commented this out to await further instruction
      */
     require(["dijit/registry"], function (registry) {
         registry.byId("addMapFeature_button").setAttribute('disabled', false);
+        //registry.byId("createIncident_button").setAttribute('disabled', false);
     });
 
     console.log('jsonURL: ' + jsonURL);

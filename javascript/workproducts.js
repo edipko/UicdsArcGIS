@@ -108,7 +108,7 @@ function WorkProductsController($scope, $http) {
 
             require(["dijit/registry"], function (registry) {
                 registry.byId("dialogAddGetIncidentsStandby").hide();
-                registry.byId("createIncident_button").setAttribute('disabled', false);
+				registry.byId("createIncident_button").setAttribute('disabled', false);
             });
 
 
@@ -156,6 +156,7 @@ function WorkProductsController($scope, $http) {
              * Enable the buffer feature button when an incident is selected
              */
             registry.byId("incidentBuffer").setAttribute('disabled', false);
+			registry.byId("selLayer_button").setAttribute('disabled', false);
         });
 
 
