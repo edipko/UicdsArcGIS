@@ -570,21 +570,16 @@ function WorkProductsController($scope, $http) {
         myMapURL = e;
     }
 
-   function convertDMS( lat, lng ) {
-    var latitude = Math.floor(Math.abs(lat)) + 
-    // if lat is +, North. if is -, South.
-    ((lat > 0) ? "n" : "s") + 
-    // take only decimal, Multiply by 60, take only whole integer of answer for minutes
-    (Math.floor((Math.abs(lat)-Math.floor(Math.abs(lat)))*60));
-	
-	//", " + 
-	
-    // do longitude
-    var longitude = Math.floor(Math.abs(lng)) + 
-    // if lng is +, East. if is -, West.
-    ((lng > 0) ? "e" : "w") + 
-    // take only decimal, Multiply by 60, take only whole integer of answer for minutes
-    (Math.floor((Math.abs(lng)-Math.floor(Math.abs(lng)))*60));
+   function convertDMS( lat, lon ) {
+    var lat_deg = Math.floor(Math.abs(lat));
+	var lat_min = Math.floor((Math.abs(lat) - lat_deg) * 60)
+	var lat_sec = ((Math.abs(lat) - lat_deg) * 60) - lat_min;
+	var latitude = ((lat > 0) ? "" : "-") + lat_deg + ":" + lat_min + ":" + lat_sec;
+
+    var lon_deg = Math.floor(Math.abs(lon));
+	var lon_min = Math.floor((Math.abs(lon) - lon_deg) * 60)
+	var lon_sec = ((Math.abs(lon) - lon_deg) * 60) - lon_min;
+	var longitude = ((lon > 0) ? "" : "-") + lon_deg + ":" + lon_min + ":" + lon_sec;
 	
 	return latitude + "," + longitude;
 	
