@@ -604,6 +604,8 @@ function getObjIDField(graphic) {
         objIdField = 'ObjectID';
     else if (graphic.attributes['FID'])
         objIdField = 'FID';
+    else if (graphic.attributes['OBJECTID_1'])
+        objIdField = 'OBJECTID_1';
 
     return objIdField;
 }
