@@ -541,6 +541,8 @@ function showResult() {
     console.log('layerTitle: ' + layerTitle);
     console.log('layerURL: ' + layerURL);
 
+    var extStr = selectLayerExtent.xmin+","+selectLayerExtent.ymin+","+selectLayerExtent.xmax+","+selectLayerExtent.ymax;
+
     if (featureSet.features.length == 1) {
         geomType = featureSet.features[0].geometry.type;
         if (geomType == "point") {
@@ -555,11 +557,11 @@ function showResult() {
     }
 
     if (selectLayerID !== "") {
-        jsonURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json';
+        jsonURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID='+selectLayerID;
         kmzURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=KMZ';
     } else {
         //There is no KML output for feature service layer
-        jsonURL = selectLayer.url + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json';
+        jsonURL = selectLayer.url + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID=0';
     }
 
     /*
@@ -2659,7 +2661,7 @@ function leidosDemo() {
 
         if ($("input[name=contextSelection]:checked").val()) {
             /* Startup the Standby Spinner */
-            myContentStandby.show();
+            //myContentStandby.show();
 
             var a = jQuery.parseJSON($("input[name=contextSelection]:checked").val());
 
@@ -2668,6 +2670,9 @@ function leidosDemo() {
             var description = "This URL is to a KML feed that contains the " + a['name']['text'] + " Incident Share Product you have selected.";
             var tags = tags = "emergency, " + a['name']['text'] + ", geospatial, GIS, map";
             var url = a['url'];
+            
+            //var ids = a.url.substring(a.url.indexOf("\(")+1,a.url.indexOf("\)"));
+            //var extStr = a.url.substring(a.url.indexOf("ext=")+4,a.url.length);
 
             // Add to MyContent
             addMyContent(url, title, description, tags);
@@ -2857,104 +2862,112 @@ function setSelectLayer() {
         }
 
     });
-
 }
 
 
 function addMyContent(mapurl, title, description, tags) {
+    if (mapurl == 'null') {
+        alert("Item cannot be added to my content!");
+        return;
+    }
+    var param = esri.urlToObject(mapurl);
+    var addLayerUrl = param.path.substring(0, param.path.length - 6);
+    var addLayerExt = param.query.ext;
+    var addLayerWhere = param.query.where.split("+").join(" ");
+    var itemType = "Feature Service";
+    if (addLayerUrl.indexOf("MapServer") != -1) {
+        itemType = "Map Service";
+    }
+    var subLayerID = parseInt(param.query.subLayerID);
+
 	//try to access a restricted content
-        var contentRequest = esri.request({
-          url: configOptions.sharingurl + "/sharing/rest/content/users/lli_dbs",
-          content: { f: "json" },
-          handleAs: "json",
-          callbackParamName: "callback"
+    var contentRequest = esri.request({
+      url: configOptions.sharingurl + "/sharing/rest/content/users/lli_dbs",
+      content: { f: "json" },
+      handleAs: "json",
+      callbackParamName: "callback"
+    });
+    contentRequest.then(
+        function(response) {
+            console.log("Success: ", response);
+            addContent();
+        },
+        function(error) {
+            console.log("Error: ", error.message);
+            if (error.httpCode == 403) {
+               addContent();
+            }
+            else {
+                alert("Please log in to add content.");
+            }
+        }
+    );
+
+    function addContent() {
+        var userInfoRequest = esri.request({
+        url: configOptions.sharingurl + "/sharing/rest/portals/self",
+            content: { f: "json" },
+            handleAs: "json",
+            callbackParamName: "callback"
         });
-        contentRequest.then(
+        userInfoRequest.then(
             function(response) {
                 console.log("Success: ", response);
-                addContent();
+                if (response.user) {
+                    username = response.user.username;
+                    //Add content
+                    console.log("URL to MyContent: " + mapurl);
+                    var layersRequest = esri.request({
+                        url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/addItem",
+                        content: { f: "json",
+                        type: itemType,
+                        url: addLayerUrl,
+                        title: title,
+                        text:"",
+                        extent: addLayerExt
+                        },
+                        handleAs: "json",
+                        callbackParamName: "callback"
+                    }, {usePost: true});
+					
+					
+                    layersRequest.then(
+                        function(response) {
+                            console.log("Success: ", "Item "+response.id+" is added successfully.");
+                            alert("Item "+response.id+" is added successfully.");
+
+                            var updateRequest = esri.request({
+                                url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/items/"+response.id+"/update",
+                                content: {
+                                   f: "json",
+                                   text: dojo.toJson({"layers":[{"id":subLayerID,"layerDefinition":{"definitionExpression": addLayerWhere}}]})
+                                },
+                                handleAs: "json",
+                                callbackParamName: "callback"
+                            }, {usePost: true});
+    
+                            updateRequest.then(
+                                function(response) {
+                                    console.log("Success: ");
+                                }, function(error) {
+                                    alert("An error occurred adding to my content. Error: " + error);
+                                }
+                            );
+
+                        }, function(error) {
+                            alert(error.message);
+                        }
+                    );
+                }
+                else {
+                    alert("User is not logged in.")
+                }
             },
             function(error) {
                 console.log("Error: ", error.message);
-                if (error.httpCode == 403) {
-                   addContent();
-                }
-                else {
-                    alert("Please log in to add content.");
-                }
             }
         );
-
-        function addContent() {
-            var userInfoRequest = esri.request({
-            url: configOptions.sharingurl + "/sharing/rest/portals/self",
-                content: { f: "json" },
-                handleAs: "json",
-                callbackParamName: "callback"
-            });
-            userInfoRequest.then(
-                function(response) {
-                    console.log("Success: ", response);
-                    if (response.user) {
-                        username = response.user.username;
-                        //Add content
-                        console.log("URL to MyContent: " + mapurl);
-                        var layersRequest = esri.request({
-                            url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/addItem",
-                            content: { f: "json",
-                            type: "Feature Service",
-                            url: mapurl,
-                            title: title,
-                            text:"",
-                            extent: selectLayerExtent.xmin+","+selectLayerExtent.ymin+","+selectLayerExtent.xmax+","+selectLayerExtent.ymax
-                            },
-                            handleAs: "json",
-                            callbackParamName: "callback"
-                        }, {usePost: true});
-						
-						
-                        layersRequest.then(
-                            function(response) {
-                                console.log("Success: ", "Item "+response.id+" is added successfully.");
-                                alert("Item "+response.id+" is added successfully.");
-
-                                var subLayerID;
-                                if (selectLayerID == "")
-                                    subLayerID = 0;
-                                else
-                                    subLayerID = selectLayerID;
-
-                                var updateRequest = esri.request({
-                                    url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/items/"+response.id+"/update",
-                                    content: {
-                                       f: "json",
-                                       text: dojo.toJson({"layers":[{"id":subLayerID,"layerDefinition":{"definitionExpression":  objIdField+" in ("+objectids + ")"}}]})
-                                    },
-                                    handleAs: "json",
-                                    callbackParamName: "callback"
-                                }, {usePost: true});
-        
-                                updateRequest.then(
-                                    function(response) {
-                                        console.log("Success: ");
-                                    }, function(error) {
-                                        alert("An error occurred adding to my content. Error: " + error);
-                                    }
-                                );
-                            }, function(error) {
-                                alert(error.message);
-                            }
-                        );
-                    }
-                    else {
-                        alert("User is not logged in.")
-                    }
-                },
-                function(error) {
-                    console.log("Error: ", error.message);
-                }
-            );
-        }
+    }
 }
 
 function populateNewIncidentDialog(featuresJSONStr) {
