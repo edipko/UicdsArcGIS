@@ -300,10 +300,10 @@ function WorkProductsController($scope, $http) {
             switch (string) {
 			case "<Digest":
 			    digest_start = l;
-				console.log("Got Digest start");
+				//console.log("Got Digest start");
 				break;
 		    case "</Diges":
-			    console.log("Got digest end");
+			    //console.log("Got digest end");
 			    digest_end = l;
 				break;
             }
@@ -451,7 +451,7 @@ function WorkProductsController($scope, $http) {
                 /*
                  * Current Incident does not have a MapViewContext so we will need to create one
                  */
-                $("#getData").modal('toggle');
+                //$("#getData").modal('toggle');
                 alert("No Default MapContext");
             }
         } else {
@@ -570,31 +570,29 @@ function WorkProductsController($scope, $http) {
         myMapURL = e;
     }
 
-
-   function deg_to_dms (deg) {
+   function convertDMS( lat, lng ) {
+    var latitude = Math.floor(Math.abs(lat)) + 
+    // if lat is +, North. if is -, South.
+    ((lat > 0) ? "n" : "s") + 
+    // take only decimal, Multiply by 60, take only whole integer of answer for minutes
+    (Math.floor((Math.abs(lat)-Math.floor(Math.abs(lat)))*60));
+	
+	//", " + 
+	
+    // do longitude
+    var longitude = Math.floor(Math.abs(lng)) + 
+    // if lng is +, East. if is -, West.
+    ((lng > 0) ? "e" : "w") + 
+    // take only decimal, Multiply by 60, take only whole integer of answer for minutes
+    (Math.floor((Math.abs(lng)-Math.floor(Math.abs(lng)))*60));
+	
+	return latitude + "," + longitude;
+	
+}
    
    
-   var d = Math.floor (deg);
-     
-   var minfloat = Math.abs((deg-d)*60);
-   var m = Math.floor(minfloat);
    
-   var secfloat = Math.abs((minfloat-m)*60);
-   //var s = Math.round(secfloat);
-   var s = secfloat;
    
-   // After rounding, the seconds might become 60. These two
-   // if-tests are not necessary if no rounding is done.
-   if (s==60) {
-     m++;
-     s=0;
-   }
-   if (m==60) {
-     d++;
-     m=0;
-   }
-   return ("" + d + ":" + m + ":" + s);
-   }
     $scope.createIncident = function () {
 		
 		
@@ -624,8 +622,10 @@ function WorkProductsController($scope, $http) {
 		var fullname = "";
 		
 		// Convert Decimal Degrees to DMS
-		var lat_dms = deg_to_dms(lat).split(":");
-		var lon_dms = deg_to_dms(lon).split(":");
+		var dms = convertDMS( lat, lon ).split(",");
+		
+		var lat_dms = dms[0].split(":");
+		var lon_dms = dms[1].split(":");
 		
 		var wp_data = {
 			CATEGORY: category,
