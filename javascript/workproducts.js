@@ -570,6 +570,120 @@ function WorkProductsController($scope, $http) {
         myMapURL = e;
     }
 
+
+   function deg_to_dms (deg) {
+   
+   
+   var d = Math.floor (deg);
+     
+   var minfloat = Math.abs((deg-d)*60);
+   var m = Math.floor(minfloat);
+   
+   var secfloat = Math.abs((minfloat-m)*60);
+   //var s = Math.round(secfloat);
+   var s = secfloat;
+   
+   // After rounding, the seconds might become 60. These two
+   // if-tests are not necessary if no rounding is done.
+   if (s==60) {
+     m++;
+     s=0;
+   }
+   if (m==60) {
+     d++;
+     m=0;
+   }
+   return ("" + d + ":" + m + ":" + s);
+   }
+    $scope.createIncident = function () {
+		
+		
+		console.log("Starting CreateIncident Standby");
+        require(["dijit/registry"], function (registry) {
+            registry.byId("dialogCreateIncidentStandby").show();
+        });
+		
+		
+		console.log("Creaing incident");
+		var type = $("#ci_type").val();
+		var datetime = $("#ci_dt").val();
+		var name = $("#ci_name").val();
+		var location = $("#ci_location").val();
+		var lat = $("#ci_lat").val();
+		var lon = $("#ci_lon").val();
+		var description = $("#ci_desc").val();
+		var status = $("#ci_status").val();
+		var reason = $("#ci_reason").val();
+		var disposition = $("#ci_disposition").val();
+		var mapURL = $("#ci_mapURL").val();
+		var mapName = $("#ci_mapName").val();
+		var mapTitle = $("#ci_mapTitle").val();
+		var category = "";
+		var radius = 1;
+		var orgname = "";
+		var fullname = "";
+		
+		// Convert Decimal Degrees to DMS
+		var lat_dms = deg_to_dms(lat).split(":");
+		var lon_dms = deg_to_dms(lon).split(":");
+		
+		var wp_data = {
+			CATEGORY: category,
+			DATETIME: datetime,
+			DESCRIPTION: description,
+			ACTIVITY: name,
+			ADDRESS: location,
+			LATDEG: lat_dms[0],
+			LATMIN: lat_dms[1],
+			LATSEC: lat_dms[2],
+			LONDEG: lon_dms[0],
+			LONMIN: lon_dms[1],
+			LONSEC: lon_dms[2],
+			RADIUS: radius,
+			ORGNAME: orgname,
+			FULLNAME: fullname
+		};
+		
+		var xml = "";
+		require(["dojo/_base/lang", "dojo/dom", "dojo/domReady!"], function (lang, dom) {
+            xml = lang.replace(xmlCreateIncidentTmpl, wp_data);
+        });
+		
+		$http({
+            method: 'POST',
+            url: $scope.workproductMgmtEndpoint,
+            headers: {
+                "Content-Type": "text/xml"
+            },
+            withCredentials: true,
+            data: xml
+        }).
+        success(function (data, status, headers, config) {
+            //viewRawXML(data);
+            alert("Successfully Created Incident");
+            require(["dijit/registry"], function (registry) {
+                registry.byId("dialogCreateIncidentStandby").hide();
+                registry.byId("dialogCreateIncident").hide();
+            });
+
+        }).error(function (data, status, headers, config) {
+            $("#dialogAddWebMapStandby").hide();
+            // called asynchronously if an error occurs
+            // or server returns response with an error status.
+            require(["dijit/registry"], function (registry) {
+                registry.byId("dialogCreateIncidentStandby").hide();
+                registry.byId("dialogCreateIncident").hide();
+            });
+            alert('SubmitMapData: An error occured submitting data to UICDS. Error code: ' + status);
+            console.debug("XML:" + xml);
+            console.debug("DATA: " + data);
+            console.debug("STATUS: " + status);
+            console.debug("HEADERS: " + headers);
+            console.debug("CONFIG: " + config);
+
+        });	
+	}
+	
     $scope.submitMapData = function () {
 		console.log("Starting submitMapData Standby");
         require(["dijit/registry"], function (registry) {
@@ -724,3 +838,56 @@ var xmlAddMapLayerTmpl = ['<soapenv:Envelope xmlns:soapenv="http://schemas.xmlso
     '</soapenv:Body>',
     '</soapenv:Envelope>'
 ].join('\n');
+
+var xmlCreateIncidentTmpl = ['<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
+  ,'     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">'
+  ,'         <SOAP-ENV:Header/>'
+  ,'         <SOAP-ENV:Body>'
+  ,'            <CreateIncidentRequest NS1:schemaLocation="http://uicds.org/IncidentManagementServiceservices/IncidentManagement/0.1/IncidentManagementService.xsd"'
+  ,'                xmlns="http://uicds.org/IncidentManagementService"'
+  ,'                xmlns:NS1="http://www.w3.org/2001/XMLSchema-instance">'
+  ,'                <inc:Incident xmlns:inc="http://uicds.org/incident">'
+  ,'                <ActivityCategoryText xmlns="http://niem.gov/niem/niem-core/2.0">{CATEGORY}</ActivityCategoryText>'
+  ,'                <ActivityDate xmlns="http://niem.gov/niem/niem-core/2.0">'
+  ,'                     <DateTime>{DATETIME}</DateTime>'
+  ,'                </ActivityDate>'
+  ,'                <ActivityDescriptionText xmlns="http://niem.gov/niem/niem-core/2.0">{DESCRIPTION}</ActivityDescriptionText>'
+  ,'                <ActivityName xmlns="http://niem.gov/niem/niem-core/2.0">{ACTIVITY}</ActivityName>'
+  ,'                <IncidentLocation xmlns="http://niem.gov/niem/niem-core/2.0">'
+  ,'                   <LocationAddress>'
+  ,'                           <AddressFullText>{ADDRESS}</AddressFullText>'
+  ,'                   </LocationAddress><LocationArea>'
+  ,'                       <AreaCircularRegion>'
+  ,'                          <CircularRegionCenterCoordinate>'
+  ,'                                 <GeographicCoordinateLatitude>'
+  ,'                                    <LatitudeDegreeValue>{LATDEG}</LatitudeDegreeValue>'
+  ,'                                        <LatitudeMinuteValue>{LATMIN}</LatitudeMinuteValue>'
+  ,'                                        <LatitudeSecondValue>{LATSEC}</LatitudeSecondValue>'
+  ,'                                 </GeographicCoordinateLatitude>'
+  ,'                                 <GeographicCoordinateLongitude>'
+  ,'                                    <LongitudeDegreeValue>{LONDEG}</LongitudeDegreeValue>'
+  ,'                                        <LongitudeMinuteValue>{LONMIN}</LongitudeMinuteValue>'
+  ,'                                        <LongitudeSecondValue>{LONSEC}</LongitudeSecondValue>'
+  ,'                                 </GeographicCoordinateLongitude>'
+  ,'                              </CircularRegionCenterCoordinate>'
+  ,'                              <CircularRegionRadiusLengthMeasure>'
+  ,'                                 <MeasurePointValue>{RADIUS}</MeasurePointValue>'
+  ,'                                 <LengthUnitCode>SMI</LengthUnitCode>'
+  ,'                              </CircularRegionRadiusLengthMeasure>'
+  ,'                   </AreaCircularRegion></LocationArea>'
+  ,'          </IncidentLocation>'
+  ,'              <IncidentJurisdictionalOrganization xmlns="http://niem.gov/niem/niem-core/2.0">'
+  ,'                 <OrganizationName>{ORGNAME}</OrganizationName>'
+  ,'                 <OrganizationPrincipalOfficial>'
+  ,'                    <PersonName>'
+  ,'                           <PersonFullName>{FULLNAME}</PersonFullName>'
+  ,'                        </PersonName></OrganizationPrincipalOfficial>'
+  ,'                        <OrganizationStatus>'
+  ,'                           <StatusDescriptionText>Activated</StatusDescriptionText>'
+  ,'                        </OrganizationStatus>'
+  ,'          </IncidentJurisdictionalOrganization>'
+  ,'  </inc:Incident>'
+  ,'         </CreateIncidentRequest>'
+  ,'         </SOAP-ENV:Body>'
+  ,'         </SOAP-ENV:Envelope>'
+  ].join('\n');

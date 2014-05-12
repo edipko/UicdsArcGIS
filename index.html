@@ -421,7 +421,8 @@
                                     <div data-dojo-type="dijit.form.TextBox" title="Map Name:" value="" id="ci_mapName"></div>
                                     <div data-dojo-type="dijit.form.TextBox" title="Map Title:" value="" id="ci_mapTitle"></div>
                                 </div>
-                                <div data-dojo-type="dijit/form/Button" label="Submit" id="ci_submit"></div>
+                               <!-- <div data-dojo-type="dijit/form/Button" label="Submit" id="ci_submit"></div> -->
+                               <button ng-click="createIncident();" id="ci_submit">Submit</button>
                             </div>
                             <!-- End Create Incident Dialog -->
 
@@ -527,6 +528,7 @@
       <div jsId="myContentStandby" dojoType="dojox.widget.Standby" target="dialogAddMyContent">
       <div jsId="dialogAddWebMapStandby" id="dialogAddWebMapStandby" dojoType="dojox.widget.Standby" target="dialogAddWebMap">
       <div jsId="dialogAddGetIncidentsStandby" id="dialogAddGetIncidentsStandby" dojoType="dojox.widget.Standby" target="uicdsDialog">
+      <div jsId="dialogCreateIncidentStandby" id="dialogCreateIncidentStandby" dojoType="dojox.widget.Standby" target="dialogCreateIncident">
          <div id="bottomPane" dojotype="dijit.layout.ContentPane" region="bottom" gutters="false" style="display:none;margin:10px 5px;width:auto;height:275px;background-color:white;">
             This is the bottom
          </div>
