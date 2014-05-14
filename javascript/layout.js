@@ -2409,7 +2409,8 @@ function leidosDemo() {
 			  if (mapLayer.layerObject) {
                 content = content + "<input type='radio' data-dojo-type='dijit/form/RadioButton' " +
                     " name='radioGroup'" +
-                    " id='ml_" + mapLayer.title + "'" +
+                  //  " id='ml_" + mapLayer.title + "'" +
+				  //  " id='ml_" + mapLayer.url + "'" +
                     " value='" + mapLayer.url + "'/>" +
                     "<label for=\"" + mapLayer.title + "\">" + "&nbsp;&nbsp;" + mapLayer.title + "</label> <br />"
                 console.log('Title: ' + mapLayer.title + '\nURL: ' + mapLayer.url);
@@ -2814,7 +2815,7 @@ function leidosDemo() {
                     content = content + "<input type='radio' data-dojo-type='dijit/form/RadioButton' " +
                         " onChange='javascript:setSelectLayer();'" +
                         " name='featureRadioGroup'" +
-                        " id='" + mapLayer.title + "'" +
+                    //    " id='" + mapLayer.title + "'" +
                         " value='" + mapLayer.url + "'/>" +
                         "<label for=\"" + mapLayer.title + "\">" + "&nbsp;&nbsp;" + mapLayer.title + "</label> <br />"
                     //console.log('Title: '+mapLayer.title+'\nURL: '+mapLayer.url);
