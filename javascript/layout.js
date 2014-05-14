@@ -2395,7 +2395,7 @@ function leidosDemo() {
             layerDialog = new Dialog({
                 title: "Select Layer",
                 content: "",
-                style: "width: 300px"
+                style: "width: 300px;height:220px;position:relative;overflow:scroll"
             });
         });
 
