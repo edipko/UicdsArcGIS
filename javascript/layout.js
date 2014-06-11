@@ -561,7 +561,8 @@ function showResult() {
         kmzURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=KMZ';
     } else {
         //There is no KML output for feature service layer
-        jsonURL = selectLayer.url + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID=0&title='+layerTitle;
+        var lyrID = selectLayer.url.substring(selectLayer.url.length - 1, selectLayer.url.length);
+        jsonURL = selectLayer.url + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID='+lyrID+'&title='+layerTitle;
     }
 
     /*
@@ -2874,7 +2875,7 @@ function addMyContent(mapurl, title, description, tags) {
         return;
     }
     var param = esri.urlToObject(mapurl);
-    var addLayerUrl = param.path.substring(0, param.path.length - 6);
+    var addLayerUrl = param.path.substring(0, param.path.length - 8);
     var addLayerExt = param.query.ext;
     var addLayerTitle = param.query.title;
     var addLayerWhere = param.query.where.split("+").join(" ");
@@ -2927,7 +2928,7 @@ function addMyContent(mapurl, title, description, tags) {
                         type: itemType,
                         url: addLayerUrl,
                         title: addLayerTitle + " Incident",
-                        text:"",
+                        text:dojo.toJson({"layers":[{"id":subLayerID,"layerDefinition":{"definitionExpression": addLayerWhere}}]}),
                         extent: addLayerExt
                         },
                         handleAs: "json",
@@ -2938,46 +2939,6 @@ function addMyContent(mapurl, title, description, tags) {
                     layersRequest.then(
                         function(response) {
                             console.log("Success: ", "Item "+response.id+" is added successfully.");
-                            var itemID = response.id;
-                            var updateRequest = esri.request({
-                                url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/items/"+response.id+"/update",
-                                content: {
-                                   f: "json",
-                                   text: dojo.toJson({"layers":[{"id":subLayerID,"layerDefinition":{"definitionExpression": addLayerWhere}}]})
-                                },
-                                handleAs: "json",
-                                callbackParamName: "callback"
-                            }, {usePost: true});
-    
-                            updateRequest.then(
-                                function(response) {
-                                    console.log("Success applying filter. ");
-                                    //share it with everyone
-                                    var shareRequest = esri.request({
-                                        url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/items/"+response.id+"/share",
-                                        content: {
-                                           f: "json",
-                                           everyone: true
-                                        },
-                                        handleAs: "json",
-                                        callbackParamName: "callback"
-                                    }, {usePost: true});
-
-                                    shareRequest.then(
-                                        function(response) {
-                                            console.log("Success sharing item.");
-                                            alert("Item "+itemID+" is added and shared successfully.");
-                                        }, function(error) {
-                                            alert("An error occurred sharing item. Error: " + error);
-                                        }
-                                    );
-
-
-                                }, function(error) {
-                                    alert("An error occurred adding to my content. Error: " + error);
-                                }
-                            );
-
                         }, function(error) {
                             alert(error.message);
                         }
