@@ -561,7 +561,8 @@ function showResult() {
         kmzURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=KMZ';
     } else {
         //There is no KML output for feature service layer
-        var lyrID = selectLayer.url.substring(selectLayer.url.length - 1, selectLayer.url.length);
+        var parts = selectLayer.url.split("/");
+        var lyrID = parts[parts.length-1];
         jsonURL = selectLayer.url + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID='+lyrID+'&title='+layerTitle;
     }
 
@@ -2874,8 +2875,11 @@ function addMyContent(mapurl, title, description, tags) {
         alert("Item cannot be added to my content!");
         return;
     }
+
     var param = esri.urlToObject(mapurl);
-    var addLayerUrl = param.path.substring(0, param.path.length - 8);
+    var subLayerID = parseInt(param.query.subLayerID);
+    var endIdx = param.path.length - 6 - param.query.subLayerID.length - 1;
+    var addLayerUrl = param.path.substring(0, endIdx);
     var addLayerExt = param.query.ext;
     var addLayerTitle = param.query.title;
     var addLayerWhere = param.query.where.split("+").join(" ");
@@ -2883,7 +2887,7 @@ function addMyContent(mapurl, title, description, tags) {
     if (addLayerUrl.indexOf("MapServer") != -1) {
         itemType = "Map Service";
     }
-    var subLayerID = parseInt(param.query.subLayerID);
+    
 
 	//try to access a restricted content
     var contentRequest = esri.request({
@@ -2938,7 +2942,7 @@ function addMyContent(mapurl, title, description, tags) {
 					
                     layersRequest.then(
                         function(response) {
-                            console.log("Success: ", "Item "+response.id+" is added successfully.");
+                            alert("Success: Item "+response.id+" is added successfully.");
                         }, function(error) {
                             alert(error.message);
                         }
