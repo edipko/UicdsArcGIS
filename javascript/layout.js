@@ -561,9 +561,7 @@ function showResult() {
         kmzURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=KMZ';
     } else {
         //There is no KML output for feature service layer
-        var parts = selectLayer.url.split("/");
-        var lyrID = parts[parts.length-1];
-        jsonURL = selectLayer.url + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID='+lyrID+'&title='+layerTitle;
+        jsonURL = selectLayer.url + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&title='+layerTitle;
     }
 
     /*
@@ -2871,23 +2869,65 @@ function setSelectLayer() {
 
 
 function addMyContent(mapurl, title, description, tags) {
+    var itemType, param, subLayerID, endIdx, itemUrl, itemExt, itemWhere, itemContent, itemTitle;
+
     if (mapurl == 'null') {
         alert("Item cannot be added to my content!");
         return;
     }
-
-    var param = esri.urlToObject(mapurl);
-    var subLayerID = parseInt(param.query.subLayerID);
-    var endIdx = param.path.length - 6 - param.query.subLayerID.length - 1;
-    var addLayerUrl = param.path.substring(0, endIdx);
-    var addLayerExt = param.query.ext;
-    var addLayerTitle = param.query.title;
-    var addLayerWhere = param.query.where.split("+").join(" ");
-    var itemType = "Feature Service";
-    if (addLayerUrl.indexOf("MapServer") != -1) {
-        itemType = "Map Service";
-    }
     
+    if (mapurl.indexOf("?webmap") != -1) {
+        itemContent = {
+            f: "json",
+            type: "Web Mapping Application",
+            url: mapurl,
+            title: title,
+            tags: tags
+        };
+    }
+    else {
+        //layer or features
+        param = esri.urlToObject(mapurl);
+        
+        if (param.query) {
+            //featrues
+            if (param.query.subLayerID) {
+                subLayerID = param.query.subLayerID;
+            }
+            else {
+                var parts = param.path.split("/");
+                var lyrID = parts[parts.length-2];
+                subLayerID = lyrID;
+            }
+
+            endIdx = param.path.length - 6 - subLayerID.length - 1;
+            itemUrl = param.path.substring(0, endIdx);
+            itemExt = param.query.ext;
+            itemWhere = param.query.where.split("+").join(" ");
+            itemTitle = param.query.title;
+            
+            itemContent = { 
+                f: "json",
+                url: itemUrl,
+                title: itemTitle,
+                text:dojo.toJson({"layers":[{"id":parseInt(subLayerID),"layerDefinition":{"definitionExpression": itemWhere}}]}),
+                extent: itemExt
+            };
+        }
+        else {
+            itemContent = { 
+                f: "json",
+                url: mapurl,
+                title: title
+                //text:dojo.toJson({"layers":[{"id":subLayerID}]})
+            };
+
+        }
+        if (mapurl.indexOf("MapServer") != -1)
+            itemContent.type = "Map Service";
+        if (mapurl.indexOf("FeatureServer") != -1) 
+            itemContent.type = "Feature Service";
+    }
 
 	//try to access a restricted content
     var contentRequest = esri.request({
@@ -2928,13 +2968,7 @@ function addMyContent(mapurl, title, description, tags) {
                     console.log("URL to MyContent: " + mapurl);
                     var layersRequest = esri.request({
                         url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/addItem",
-                        content: { f: "json",
-                        type: itemType,
-                        url: addLayerUrl,
-                        title: addLayerTitle + " Incident",
-                        text:dojo.toJson({"layers":[{"id":subLayerID,"layerDefinition":{"definitionExpression": addLayerWhere}}]}),
-                        extent: addLayerExt
-                        },
+                        content: itemContent,
                         handleAs: "json",
                         callbackParamName: "callback"
                     }, {usePost: true});
