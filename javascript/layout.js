@@ -2407,11 +2407,12 @@ function leidosDemo() {
 			*/
 		   // if (mapLayer.layerObject && mapLayer.layerObject.visible) {
 			  if (mapLayer.layerObject) {
+                var url = mapLayer.url+'?title='+mapLayer.title;
                 content = content + "<input type='radio' data-dojo-type='dijit/form/RadioButton' " +
                     " name='radioGroup'" +
                   //  " id='ml_" + mapLayer.title + "'" +
 				  //  " id='ml_" + mapLayer.url + "'" +
-                    " value='" + mapLayer.url + "'/>" +
+                    " value='" + url + "'/>" +
                     "<label for=\"" + mapLayer.title + "\">" + "&nbsp;&nbsp;" + mapLayer.title + "</label> <br />"
                 console.log('Title: ' + mapLayer.title + '\nURL: ' + mapLayer.url);
             }
@@ -2889,7 +2890,7 @@ function addMyContent(mapurl, title, description, tags) {
         //layer or features
         param = esri.urlToObject(mapurl);
         
-        if (param.query) {
+        if (param.query.ext) {
             //featrues
             if (param.query.subLayerID) {
                 subLayerID = param.query.subLayerID;
@@ -2909,17 +2910,17 @@ function addMyContent(mapurl, title, description, tags) {
             itemContent = { 
                 f: "json",
                 url: itemUrl,
-                title: itemTitle,
+                title: itemTitle + ' - Incident',
                 text:dojo.toJson({"layers":[{"id":parseInt(subLayerID),"layerDefinition":{"definitionExpression": itemWhere}}]}),
                 extent: itemExt
             };
         }
         else {
+            itemTitle = param.query.title;
             itemContent = { 
                 f: "json",
-                url: mapurl,
-                title: title
-                //text:dojo.toJson({"layers":[{"id":subLayerID}]})
+                url: param.path,
+                title: itemTitle + ' - Incident'
             };
 
         }
@@ -2976,7 +2977,27 @@ function addMyContent(mapurl, title, description, tags) {
 					
                     layersRequest.then(
                         function(response) {
-                            alert("Success: Item "+response.id+" is added successfully.");
+                            console.log("Success: Item "+response.id+" is added successfully.");
+                            var itemID = response.id;
+
+                            var shareRequest = esri.request({
+                                url: configOptions.sharingurl + "/sharing/rest/content/users/"+username+"/items/"+response.id+"/share",
+                                content: {
+                                   f: "json",
+                                   everyone: true
+                                },
+                                handleAs: "json",
+                                callbackParamName: "callback"
+                            }, {usePost: true});
+
+                            shareRequest.then(
+                                function(response) {
+                                    console.log("Success sharing item.");
+                                    alert("Item "+itemID+" is added and shared successfully.");
+                                }, function(error) {
+                                    alert("An error occurred sharing item. Error: " + error);
+                                }
+                            );
                         }, function(error) {
                             alert(error.message);
                         }
