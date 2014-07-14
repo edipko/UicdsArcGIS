@@ -31,6 +31,11 @@ var flp = null;  //Feature Layer Pane
 var incident_marker = null;
 var objIdField = '';
 
+function fixedEncodeURIComponent(str){
+     return encodeURIComponent(str).replace(/[!'()]/g, escape).replace(/\*/g, "%2A");
+}
+
+
 function initMap(options) {
     /*Patch to fix issue with floating panes used to display the measure and time panel. They
        moved slightly each time the window was toggled due to this bug
@@ -556,12 +561,28 @@ function showResult() {
         console.log('geomStr: ' + geomStr);
     }
 
+
+
+
+
+
+
     if (selectLayerID !== "") {
-        jsonURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID='+selectLayerID+'&title='+layerTitle;
-        kmzURL = selectLayer.url + '/' + selectLayerID + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=KMZ';
+        jsonURL = selectLayer.url + '/' + selectLayerID + '/query?' 
+		        + fixedEncodeURIComponent('where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID='+selectLayerID+'&title='+layerTitle);
+		//jsonURL.replace(/ /g, "%20").replace(/\(/g, '%28').replace(/\)/g, '%29').replace("*", "%2A");
+		
+	    console.log("layout.js: jsonURL: " + jsonURL);
+        kmzURL = selectLayer.url + '/' + selectLayerID + '/query?'
+		        + fixedEncodeURIComponent('where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=KMZ');
+		//kmzURL.replace(/ /g, "%20").replace(/\(/g, '%28').replace(/\)/g, '%29').replace("*", "%2A");
+		console.log("layout.js: kmzURL: " + kmzURL);
     } else {
         //There is no KML output for feature service layer
-        jsonURL = selectLayer.url + '/query?where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&title='+layerTitle;
+        jsonURL = selectLayer.url + '/query?'
+		        + fixedEncodeURIComponent('where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&title='+layerTitle);
+	    //jsonURL.replace(/ /g, "%20").replace(/\(/g, '%28').replace(/\)/g, '%29').replace("*", "%2A");
+		console.log("layout.js: jsonURL: " + jsonURL);
     }
 
     /*
@@ -2758,7 +2779,11 @@ function leidosDemo() {
     dojo.connect(dijit.byId("jsonButton"), "onChange", function (isChecked) {
         if (isChecked) {
             require(["dijit/registry"], function (registry) {
-                registry.byId("mapURL").set("value", jsonURL);
+				
+			//	var url_pieces = jsonURL.split("?");
+			//	var url = url_pieces[0] + '?' + encodeURIComponent(url_pieces[1]); 
+                var url = jsonURL;
+				registry.byId("mapURL").set("value", url);
             });
         }
     });
@@ -2766,12 +2791,13 @@ function leidosDemo() {
     dojo.connect(dijit.byId("kmzButton"), "onChange", function (isChecked) {
         if (isChecked) {
             require(["dijit/registry"], function (registry) {
-                registry.byId("mapURL").set("value", kmzURL);
+				//var url_pieces = kmzURL.split("?");
+				//var url = url_pieces[0] + '?' + encodeURIComponent(url_pieces[1]); 
+				var url = kmzURL;
+                registry.byId("mapURL").set("value", url);
             });
         }
     });
-
-
 
 
     /*

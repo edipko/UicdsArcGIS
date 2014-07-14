@@ -684,7 +684,18 @@ function WorkProductsController($scope, $http) {
         require(["dijit/registry"], function (registry) {
             registry.byId("dialogAddWebMapStandby").show();
         });
-        var url = encodeURIComponent($("#mapURL").val());
+        
+		  /* E. Dipko bug fix - was encoding the http:// piece
+		   *  and google earth did not like it 
+		   *  
+		   *  There is also a problem with the feature URL, but that is
+		   *   now handled in the layout.js file in the onChange click for 
+		   *   JSON or KML functions
+		   */
+		//var url = encodeURIComponent($("#mapURL").val());
+		var url = $("#mapURL").val().replace(/ /g, "%20");
+		
+		
         var name = $("#mapTitle").val();
         var title = $("#mapName").val();
         var format = $("#mapFormat").val();
