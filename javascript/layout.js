@@ -667,6 +667,14 @@ function pan2location(longitude, latitude) {
     map.setExtent(map.extent.centerAt(pt_wm));
 }
 
+function convert2LatLong(x, y) {
+    var pt = new esri.geometry.Point(x, y, new esri.SpatialReference(102100));
+    var pt_LL = esri.geometry.webMercatorToGeographic(pt);
+    var long_v = pt_LL.x;
+    var lat_v = pt_LL.y;
+    console.log("lat: "+lat_v+", long: "+long_v);
+}
+
 
 function initUI(response) {
     dojo.connect(dijit.byId('map'), 'resize', resizeMap);
