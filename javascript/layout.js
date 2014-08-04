@@ -672,7 +672,8 @@ function convert2LatLong(x, y) {
     var pt_LL = esri.geometry.webMercatorToGeographic(pt);
     var long_v = pt_LL.x;
     var lat_v = pt_LL.y;
-    console.log("lat: "+lat_v+", long: "+long_v);
+    console.log("convert2LatLong: lat: "+lat_v+", long: "+long_v);
+	return pt_LL;
 }
 
 
@@ -3053,6 +3054,13 @@ function populateNewIncidentDialog(featuresJSONStr) {
     obj = JSON.parse(featuresJSONStr);
 	var latitude = obj.features[0].attributes.Latitude;
 	var longitude = obj.features[0].attributes.Longitude;
+	
+	if ( ((latitude > 0) && (latitude > 90)) || ((latitude < 0) && (latitude < -90)) ){
+		pt_LL.x = convert2LatLong(longitude, latitude);
+	    longgitude = pt_LL.x;
+        latitude = pt_LL.y;
+        console.log("populateNewIncidentDialog converting from webmercator - lat: "+latitude+", long: "+longitude);
+	} 
 	var location = obj.features[0].attributes.Address;
 	var description = "<![CDATA[" + featuresJSONStr + "]]>";
 /*	
