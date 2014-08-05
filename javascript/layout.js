@@ -3046,15 +3046,59 @@ function addMyContent(mapurl, title, description, tags) {
 function populateNewIncidentDialog(featuresJSONStr) {
 	// Parse the JSON string.
     obj = JSON.parse(featuresJSONStr);
-	//var latitude = obj.features[0].attributes.Latitude;
-	//var longitude = obj.features[0].attributes.Longitude;
-	var x = obj.features[0].geometry.x;
-	var y = obj.features[0].geometry.y;
 	
-	pt_LL = convert2LatLong(x, y);
-	longitude = pt_LL.x;
-    latitude = pt_LL.y;
-	var location = obj.features[0].attributes.Address;
+    var attributes = obj.features[0].attributes;
+	
+	/*
+	 * Get a value for Lat/Long if available, if not 
+	 *  try to convert the value from the Geometry
+	 */
+	var latitude = null;
+	var longitude = null;
+	
+	if (attributes.hasOwnProperty('Latitude')) {
+	   latitude = obj.features[0].attributes.Latitude;
+	   longitude = obj.features[0].attributes.Longitude;
+	} else {
+	   var x = obj.features[0].geometry.x;
+	   var y = obj.features[0].geometry.y;	
+	   pt_LL = convert2LatLong(x, y);
+	   longitude = pt_LL.x;
+       latitude = pt_LL.y;
+	}
+	   	
+	
+	/*
+	 * Fetch the Name of the Feature if it is available
+	 * Might be under multiple Keys with different "arraibute" formats
+	 */
+	var attr_name = "";
+	if(attributes.hasOwnProperty('NAME')) {
+	   attr_name = obj.features[0].attributes.NAME;
+	} else {
+		if (attributes.hasOwnProperty('Facility Name')) {
+			attr_name = obj["features"][0][attributes]["Facility Name"];
+	    }	
+	}
+	console.log("Name: " + attr_name);
+	
+	
+	/* 
+	 * Fetch the Address
+	 */
+	var location = "";
+	if (attributes.hasOwnProperty('Address')) {
+	   location = obj.features[0].attributes.Address;
+	} else {
+		if (attributes.hasOwnProperty('LADDR')) {
+			location = obj.features[0].attributes.LADDR;
+		}
+	}
+	console.log("Location: " + location);
+	
+	/* 
+	 * Set the description to the entire feature String that we have
+	 */
 	var description = "<![CDATA[" + featuresJSONStr + "]]>";
 /*	
 	{
@@ -3092,6 +3136,45 @@ function populateNewIncidentDialog(featuresJSONStr) {
 }
 	
 	
+	
+	
+	{  
+  "spatialReference":{  
+    "wkid":102100,
+    "latestWkid":3857
+  },
+  "geometryType":"esriGeometryPoint",
+  "features":[  
+    {  
+      "geometry":{  
+        "x":-13810463.007,
+        "y":4977217.542999998,
+        "spatialReference":{  
+          "wkid":102100,
+          "latestWkid":3857
+        }
+      },
+      "attributes":{  
+        "OBJECTID_1":31,
+        "NAME":"GARFIELD ELEMENTARY",
+        "LADDR":"2200 FRESHWATER RD.",
+        "LCITY":"EUREKA",
+        "LSTATE":"CA",
+        "LZIP":"95503",
+        "PHONE":"7074425471",
+        "CONAME":"HUMBOLDT",
+        "LEVEL":"Primary",
+        "ENROLLMENT":47,
+        "START_GRAD":"KG",
+        "END_GRADE":"06",
+        "NAICS_DESC":"Elementary and Secondary Schools"
+      }
+    }
+  ]
+}
+
+
+	
 */	
 	
 	require(["dijit/registry"], function (registry) {
@@ -3099,8 +3182,6 @@ function populateNewIncidentDialog(featuresJSONStr) {
 		registry.byId("ci_lon").set("value", longitude);
 		registry.byId("ci_desc").set("value", description);
 		registry.byId("ci_location").set("value", location);
-		//registry.byId("ci_mapURL").set("value", );
-		//registry.byId("ci_mapName").set("value", );
-		//registry.byId("ci_mapTitle").set("value", );
+		registry.byId("ci_name").set("value", attr_name);
 	});
 }
