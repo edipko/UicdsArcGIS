@@ -561,12 +561,6 @@ function showResult() {
         console.log('geomStr: ' + geomStr);
     }
 
-
-
-
-
-
-
     if (selectLayerID !== "") {
         jsonURL = selectLayer.url + '/' + selectLayerID + '/query?' 
 		        + fixedEncodeURIComponent('where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID='+selectLayerID+'&title='+layerTitle);
@@ -672,7 +666,7 @@ function convert2LatLong(x, y) {
     var pt_LL = esri.geometry.webMercatorToGeographic(pt);
     var long_v = pt_LL.x;
     var lat_v = pt_LL.y;
-    console.log("convert2LatLong: lat: "+lat_v+", long: "+long_v);
+    //console.log("convert2LatLong: lat: "+lat_v+", long: "+long_v);
 	return pt_LL;
 }
 
@@ -3052,15 +3046,14 @@ function addMyContent(mapurl, title, description, tags) {
 function populateNewIncidentDialog(featuresJSONStr) {
 	// Parse the JSON string.
     obj = JSON.parse(featuresJSONStr);
-	var latitude = obj.features[0].attributes.Latitude;
-	var longitude = obj.features[0].attributes.Longitude;
+	//var latitude = obj.features[0].attributes.Latitude;
+	//var longitude = obj.features[0].attributes.Longitude;
+	var x = obj.features[0].geometry.x;
+	var y = obj.features[0].geometry.y;
 	
-	if ( ((latitude > 0) && (latitude > 90)) || ((latitude < 0) && (latitude < -90)) ){
-		pt_LL.x = convert2LatLong(longitude, latitude);
-	    longgitude = pt_LL.x;
-        latitude = pt_LL.y;
-        console.log("populateNewIncidentDialog converting from webmercator - lat: "+latitude+", long: "+longitude);
-	} 
+	pt_LL = convert2LatLong(x, y);
+	longitude = pt_LL.x;
+    latitude = pt_LL.y;
 	var location = obj.features[0].attributes.Address;
 	var description = "<![CDATA[" + featuresJSONStr + "]]>";
 /*	
