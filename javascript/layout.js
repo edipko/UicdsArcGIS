@@ -240,7 +240,7 @@ function createMap(webmapitem) {
 		$("#selLayer_button").width("65px");
 
 
-        leidosDemo();
+        spotonresponseFunctions();
 
         configOptions.owner = response.itemInfo.item.owner;
         document.title = configOptions.title || response.itemInfo.item.title;
@@ -2370,9 +2370,9 @@ function adjustPopupSize() {
 
 
 
-function leidosDemo() {
+function spotonresponseFunctions() {
 
-    console.log("Leidos functions active...");
+    console.log("SpotOnResponse functions active...");
 
     dojo.connect(dijit.byId("addWebMap_button"), 'onClick', function () {
         //Li Li Demonstrate how to get webmap details
@@ -3172,8 +3172,6 @@ function populateNewIncidentDialog(featuresJSONStr) {
     }
   ]
 }
-
-
 	
 */	
 	
