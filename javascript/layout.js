@@ -2916,47 +2916,65 @@ function addMyContent(mapurl, title, description, tags) {
         };
     }
     else {
-        //layer or features
+       //layer or features
         param = esri.urlToObject(mapurl);
+        //KML layer
+        if (mapurl.indexOf(".kmz") != -1) {
+            if (!param.query) 
+                itemTitle = title;
+            else
+                itemTitle = param.query.title;
+
+            itemContent = { 
+                f: "json",
+                url: mapurl,
+                title: itemTitle,
+                type:'KML',
+                typeKeywords:'Data, Map, kml',
+                tags:tags
+            };
+        }
         
-        if (param.query.ext) {
-            //featrues
-            if (param.query.subLayerID) {
-                subLayerID = param.query.subLayerID;
+        else {
+            if (param.query.ext) {
+                //featrues
+                if (param.query.subLayerID) {
+                    subLayerID = param.query.subLayerID;
+                }
+                else {
+                    var parts = param.path.split("/");
+                    var lyrID = parts[parts.length-2];
+                    subLayerID = lyrID;
+                }
+
+                endIdx = param.path.length - 6 - subLayerID.length - 1;
+                itemUrl = param.path.substring(0, endIdx);
+                itemExt = param.query.ext;
+                itemWhere = param.query.where.split("+").join(" ");
+                itemTitle = param.query.title;
+                
+                itemContent = { 
+                    f: "json",
+                    url: itemUrl,
+                    title: itemTitle + ' - Incident',
+                    text:dojo.toJson({"layers":[{"id":parseInt(subLayerID),"layerDefinition":{"definitionExpression": itemWhere}}]}),
+                    extent: itemExt
+                };
             }
             else {
-                var parts = param.path.split("/");
-                var lyrID = parts[parts.length-2];
-                subLayerID = lyrID;
+                itemTitle = param.query.title;
+                itemContent = { 
+                    f: "json",
+                    url: param.path,
+                    title: itemTitle + ' - Incident'
+                };
+
             }
-
-            endIdx = param.path.length - 6 - subLayerID.length - 1;
-            itemUrl = param.path.substring(0, endIdx);
-            itemExt = param.query.ext;
-            itemWhere = param.query.where.split("+").join(" ");
-            itemTitle = param.query.title;
-            
-            itemContent = { 
-                f: "json",
-                url: itemUrl,
-                title: itemTitle + ' - Incident',
-                text:dojo.toJson({"layers":[{"id":parseInt(subLayerID),"layerDefinition":{"definitionExpression": itemWhere}}]}),
-                extent: itemExt
-            };
+            if (mapurl.indexOf("MapServer") != -1)
+                itemContent.type = "Map Service";
+            if (mapurl.indexOf("FeatureServer") != -1) 
+                itemContent.type = "Feature Service";
         }
-        else {
-            itemTitle = param.query.title;
-            itemContent = { 
-                f: "json",
-                url: param.path,
-                title: itemTitle + ' - Incident'
-            };
-
-        }
-        if (mapurl.indexOf("MapServer") != -1)
-            itemContent.type = "Map Service";
-        if (mapurl.indexOf("FeatureServer") != -1) 
-            itemContent.type = "Feature Service";
     }
 
 	//try to access a restricted content
