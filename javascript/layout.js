@@ -2458,7 +2458,11 @@ function spotonresponseFunctions() {
             dojo.connect(dijit.byId("layerSubmit"), 'onClick', function () {
                 require(["dijit/registry"], function (registry) {
 
-                    var cdataText = "<![CDATA[" + "]]>";
+
+// Edit E. Dipko - 11/12/2014
+                   // var cdataText = "<![CDATA[" + "]]>";
+					var cdataText = "<![CDATA[" + "<b>Title:</b>" + responseObj.itemInfo.item.title + "<b>ID:</b>" + responseObj.itemInfo.item.id + "<b>Owner:</b>" + responseObj.itemInfo.item.owner + "<b>Created:</b>" + +new Date(responseObj.itemInfo.item.created) + "<b>Modified:</b>" + new Date(responseObj.itemInfo.item.modified) + "<b>Type:</b>" + responseObj.itemInfo.item.type + "<b>Name:</b>" + responseObj.itemInfo.item.name + "<b>Summary:</b>" + responseObj.itemInfo.item.snippet + "<b>Description</b>" + responseObj.itemInfo.item.description + "]]>";
+					
                     var urlVal = dijit.byId("maplayerForm").attr("value").radioGroup;
                     registry.byId("mapURL").set("value", urlVal);
                     //  selectLayerURL = urlVal;
@@ -2763,7 +2767,8 @@ function spotonresponseFunctions() {
 
     dojo.connect(dijit.byId("addMapFeature_button"), 'onClick', function () {
 
-        var cdataText = "<![CDATA[" + "]]>";
+       // var cdataText = "<![CDATA[" + "]]>";
+       var cdataText = "<![CDATA[" + "<b>Title:</b>" + responseObj.itemInfo.item.title + "<b>ID:</b>" + responseObj.itemInfo.item.id + "<b>Owner:</b>" + responseObj.itemInfo.item.owner + "<b>Created:</b>" + +new Date(responseObj.itemInfo.item.created) + "<b>Modified:</b>" + new Date(responseObj.itemInfo.item.modified) + "<b>Type:</b>" + responseObj.itemInfo.item.type + "<b>Name:</b>" + responseObj.itemInfo.item.name + "<b>Summary:</b>" + responseObj.itemInfo.item.snippet + "<b>Description</b>" + responseObj.itemInfo.item.description + "]]>";
 
         require(["dijit/registry"], function (registry) {
             if (responseObj.itemInfo.item.name) {
