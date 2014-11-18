@@ -617,6 +617,12 @@ function getObjIDField(graphic) {
         objIdField = 'OBJECTID';
     else if (graphic.attributes['ObjectID'])
         objIdField = 'ObjectID';
+    else if (graphic.attributes['objectid'])
+        objIdField = 'objectid';
+    else if (graphic.attributes['objectId'])
+        objIdField = 'objectId';
+    else if (graphic.attributes['ObjectId'])
+        objIdField = 'ObjectId';
     else if (graphic.attributes['FID'])
         objIdField = 'FID';
     else if (graphic.attributes['OBJECTID_1'])
@@ -2924,11 +2930,14 @@ function addMyContent(mapurl, title, description, tags) {
        //layer or features
         param = esri.urlToObject(mapurl);
         //KML layer
-        if (mapurl.indexOf(".kmz") != -1) {
+        if (mapurl.indexOf(".kmz") != -1 || mapurl.indexOf("f=KMZ") != -1) {
             if (!param.query) 
                 itemTitle = title;
             else
                 itemTitle = param.query.title;
+
+            if (!itemTitle)
+                itemTitle = title;
 
             itemContent = { 
                 f: "json",
