@@ -2755,6 +2755,12 @@ function spotonresponseFunctions() {
             tags = "emergency,  " + incidentName + ", human sensor, sensor";
             url = uicds_base + "/pub/search?format=kml&productType=SOI&interestGroup=" + ig;
             break;
+		case 'contentAllSoi':
+		    title = incidentName + " – Observations";
+            description = "This URL is to a KML feed that contains the Sensor Observation Share Product containing field observations";
+            tags = "emergency,  " + incidentName + ", human sensor, sensor";
+		    url = uicds_base + "/pub/search?format=kml&productType=SOI";
+			break;
         case 'contentResourceCommits':
             title = incidentName + " – Resource Commits";
             description = "This URL is to a KML feed that contains Resource Commit Share Products for " + incidentName;
