@@ -2699,7 +2699,7 @@ function spotonresponseFunctions() {
 
         if ($("input[name=contextSelection]:checked").val()) {
             /* Startup the Standby Spinner */
-            //myContentStandby.show();
+            myContentStandby.show();
 
             var a = jQuery.parseJSON($("input[name=contextSelection]:checked").val());
 
@@ -2991,6 +2991,11 @@ function addMyContent(mapurl, title, description, tags) {
         }
     }
 
+    if (!itemContent.type) {
+		itemContent.type = "KML";
+	}
+	console.log("ItemContent Type is : " + itemContent.type);
+	
 	//try to access a restricted content
     var contentRequest = esri.request({
       url: configOptions.sharingurl + "/sharing/rest/content/users/lli_dbs",
@@ -3055,17 +3060,21 @@ function addMyContent(mapurl, title, description, tags) {
                                 function(response) {
                                     console.log("Success sharing item.");
                                     alert("Item "+itemID+" is added and shared successfully.");
+									myContentStandby.hide();
                                 }, function(error) {
                                     alert("An error occurred sharing item. Error: " + error);
+									myContentStandby.hide();
                                 }
                             );
                         }, function(error) {
                             alert(error.message);
+							myContentStandby.hide();
                         }
                     );
                 }
                 else {
-                    alert("User is not logged in.")
+                    alert("User is not logged in.");
+					myContentStandby.hide();
                 }
             },
             function(error) {
