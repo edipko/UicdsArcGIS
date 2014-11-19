@@ -2948,7 +2948,15 @@ function addMyContent(mapurl, title, description, tags) {
                 tags:tags
             };
         }
-        
+        else if (!param.query) {
+            itemContent = { 
+                f: "json",
+                url: mapurl,
+                title: title,
+                type: "Document Link",
+                tag: "doc"
+            };
+        }
         else {
             if (param.query.ext) {
                 //featrues
