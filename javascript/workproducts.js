@@ -693,7 +693,10 @@ function WorkProductsController($scope, $http) {
 		   *   JSON or KML functions
 		   */
 		//var url = encodeURIComponent($("#mapURL").val());
-		var url = $("#mapURL").val().replace(/ /g, "%20");
+		
+		// Modification to use https when sending to XCore
+		//   E. Dipko - 2015.05.06
+		var url = $("#mapURL").val().replace(/ /g, "%20").replace(/http:/, "https:");
 		
 		
         var name = $("#mapTitle").val();
