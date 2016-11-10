@@ -2471,6 +2471,13 @@ function spotonresponseFunctions() {
 					
                     var urlVal = dijit.byId("maplayerForm").attr("value").radioGroup;
                     registry.byId("mapURL").set("value", urlVal);
+					
+					if (urlVal.length() > 3) {
+						registry.byId("mapSubmitButton").("disabled", false);
+					} else {
+						registry.byId("mapSubmitButton").("disabled", false);
+					}
+						
                     //  selectLayerURL = urlVal;
 
                     if (responseObj.itemInfo.item.name) {
