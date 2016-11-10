@@ -371,6 +371,9 @@
                                     $("#mapURL").val(useURL);
 									
 									jQuery($("#jsonButton").prop("checked", true));
+									if (jsonURL.length > 3) {
+										jQuery($("#featureSubmitButton").prop("disabled",true));
+									}
 									
 									console.log("kmzURL length: " + kmzURL.length);
 									if (kmzURL == "") {
