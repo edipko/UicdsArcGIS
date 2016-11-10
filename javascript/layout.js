@@ -2436,8 +2436,11 @@ function spotonresponseFunctions() {
 			* - Show all layers, not just visible ones
 			*/
 		   // if (mapLayer.layerObject && mapLayer.layerObject.visible) {
+			//where%3DOBJECTID%3E1%26outFields%3D%2A
+			  
+			
 			  if (mapLayer.layerObject) {
-                var url = mapLayer.url+'?title='+mapLayer.title;
+                var url = mapLayer.url+'/query?where=OBJECTID%3E1%26outFields%3D%2A%26returnGeometry=true%26f=json%26title='+mapLayer.title;
                 content = content + "<input type='radio' data-dojo-type='dijit/form/RadioButton' " +
                     " name='radioGroup'" +
                   //  " id='ml_" + mapLayer.title + "'" +
