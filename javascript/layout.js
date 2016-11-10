@@ -564,20 +564,29 @@ function showResult() {
     if (selectLayerID !== "") {
         jsonURL = selectLayer.url + '/' + selectLayerID + '/query?' 
 		        + fixedEncodeURIComponent('where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&subLayerID='+selectLayerID+'&title='+layerTitle);
-		//jsonURL.replace(/ /g, "%20").replace(/\(/g, '%28').replace(/\)/g, '%29').replace("*", "%2A");
 		
 	    console.log("layout.js: jsonURL: " + jsonURL);
         kmzURL = selectLayer.url + '/' + selectLayerID + '/query?'
 		        + fixedEncodeURIComponent('where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=KMZ');
-		//kmzURL.replace(/ /g, "%20").replace(/\(/g, '%28').replace(/\)/g, '%29').replace("*", "%2A");
+				
+		jQuery($("#jsonButton").prop("checked", true));
 		console.log("layout.js: kmzURL: " + kmzURL);
+		
+		
     } else {
         //There is no KML output for feature service layer
         jsonURL = selectLayer.url + '/query?'
 		        + fixedEncodeURIComponent('where=' + objIdField + '\+in\+(' + objectids + ')&outFields=*&returnGeometry=true&f=json&ext='+extStr+'&title='+layerTitle);
-	    //jsonURL.replace(/ /g, "%20").replace(/\(/g, '%28').replace(/\)/g, '%29').replace("*", "%2A");
+				
+		jQuery($("#jsonButton").prop("checked", true));
+		
 		console.log("layout.js: jsonURL: " + jsonURL);
+		
     }
+	
+	
+
+
 
     /*
      * Modified 05/02/2014 E. Dipko
@@ -2475,12 +2484,8 @@ function spotonresponseFunctions() {
                     var urlVal = dijit.byId("maplayerForm").attr("value").radioGroup;
                     registry.byId("mapURL").set("value", urlVal);
 					
-					if (urlVal.length() > 3) {
-						registry.byId("mapSubmitButton").("disabled", false);
-					} else {
-						registry.byId("mapSubmitButton").("disabled", false);
-					}
-						
+					console.log("URL value: " + urlVal);
+	
                     //  selectLayerURL = urlVal;
 
                     if (responseObj.itemInfo.item.name) {
@@ -2802,6 +2807,12 @@ function spotonresponseFunctions() {
             registry.byId("mapCData").set("value", cdataText);
 
             registry.byId("dialogAddWebMap").set("title", "Add Map Feature");
+			
+			if (registry.byId("mapURL").get("value"),length > 3) {
+				jQuery($("#featureSubmitButton").removeAttr("disabled"));
+			}
+			
+			
             registry.byId("dialogAddWebMap").show();
         });
     });
@@ -2814,6 +2825,11 @@ function spotonresponseFunctions() {
 			//	var url = url_pieces[0] + '?' + encodeURIComponent(url_pieces[1]); 
                 var url = jsonURL;
 				registry.byId("mapURL").set("value", url);
+				if ( url.length > 3 ) {
+					jQuery($("#featureSubmitButton").removeAttr("disabled"));
+				} else {
+					jQuery($("#featureSubmitButton").prop("disabled",true));
+				}
             });
         }
     });
@@ -2825,6 +2841,12 @@ function spotonresponseFunctions() {
 				//var url = url_pieces[0] + '?' + encodeURIComponent(url_pieces[1]); 
 				var url = kmzURL;
                 registry.byId("mapURL").set("value", url);
+				
+				if ( url.length > 3 ) {
+					jQuery($("#featureSubmitButton").removeAttr("disabled"));
+				} else {
+					jQuery($("#featureSubmitButton").prop("disabled",true));
+				}
             });
         }
     });

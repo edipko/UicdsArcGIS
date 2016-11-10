@@ -370,6 +370,8 @@
                                     }
                                     $("#mapURL").val(useURL);
 									
+									jQuery($("#jsonButton").prop("checked", true));
+									
 									console.log("kmzURL length: " + kmzURL.length);
 									if (kmzURL == "") {
 										jQuery("#mapForm input:radio[id=kmzButton]:first").attr('disabled', true);
@@ -386,7 +388,7 @@
                                         <div data-dojo-type="dijit.form.TextBox" title="Referenced IG:" value="" id="igidBox"></div>
                                         <div data-dojo-type="dijit.form.TextBox" title="Map URL:" value="" id="mapURL"></div>
                                         <div id="ofButtons" data-dojo-type="dojox.layout.TableContainer" data-dojo-props="cols:1">
-                                            <div data-dojo-type="dijit/form/RadioButton" title="JSON" name="ouputFormat" id="jsonButton" value="json"></div>
+                                            <div data-dojo-type="dijit/form/RadioButton" title="JSON" name="ouputFormat" id="jsonButton" value="json" checked></div>
                                             <div data-dojo-type="dijit/form/RadioButton" title="KMZ" name="ouputFormat" id="kmzButton" value="kmz"></div>
                                         </div>
                                         <div data-dojo-type="dijit.form.TextBox" title="Map Name:" value="" id="mapName"></div>
@@ -396,7 +398,7 @@
                                         <div data-dojo-type="dijit.form.TextBox" title="CDATA:" value="" id="mapCData"></div>
                                     </div>
                                 </form>
-                                <button id="mapSubmitButton" ng-click="submitMap();">Submit</button>
+                                <button id="featureSubmitButton" ng-click="submitMap();" disabled>Submit</button>
                             </div>
                             <!-- END Add Map Web, Layer or Feature Dialog -->
 
