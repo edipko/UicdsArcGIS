@@ -2455,7 +2455,7 @@ function spotonresponseFunctions() {
                   //  " id='ml_" + mapLayer.title + "'" +
 				  //  " id='ml_" + mapLayer.url + "'" +
                     " value='" + url + "'/>" +
-                    "<label for=\"" + mapLayer.title + "\">" + "&nbsp;&nbsp;" + mapLayer.title + "</label> <br />"
+                    "<label for=\"" + mapLayer.title + "\">" + "  " + mapLayer.title + "</label> <br />"
                 console.log('Title: ' + mapLayer.title + '\nURL: ' + mapLayer.url);
             }
         });
@@ -2805,10 +2805,13 @@ function spotonresponseFunctions() {
             }
             registry.byId("mapTitle").set("value", responseObj.itemInfo.item.title);
             registry.byId("mapCData").set("value", cdataText);
-
+			
+			
             registry.byId("dialogAddWebMap").set("title", "Add Map Feature");
 			
-			if (registry.byId("mapURL").get("value"),length > 3) {
+			console.log("Checking to enable Submit, mapURL is: " + registry.byId("mapURL").get("value"));
+			
+			if (registry.byId("mapURL").get("value").length > 3) {
 				jQuery($("#featureSubmitButton").removeAttr("disabled"));
 			}
 			
@@ -2896,7 +2899,7 @@ function spotonresponseFunctions() {
                         " name='featureRadioGroup'" +
                     //    " id='" + mapLayer.title + "'" +
                         " value='" + mapLayer.url + "'/>" +
-                        "<label for=\"" + mapLayer.title + "\">" + "&nbsp;&nbsp;" + mapLayer.title + "</label> <br />"
+                        "<label for=\"" + mapLayer.title + "\">" + "  " + mapLayer.title + "</label> <br />"
                     //console.log('Title: '+mapLayer.title+'\nURL: '+mapLayer.url);
                 }
             });
